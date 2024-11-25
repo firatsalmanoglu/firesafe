@@ -6,22 +6,28 @@ import { role, maintenancesData } from "@/lib/data";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import {
-  Services,
+  DeviceTypes,
+  DeviceFeatures,
   Devices,
   Users,
   Institutions,
-  Operations,
   MaintenanceCards,
   Prisma,
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
-type ManintenanceList = MaintenanceCards & { type: Services } & {
+// Tip tanımını düzelt
+type MaintenanceList = MaintenanceCards & { 
   device: Devices;
-} & { provider: Users } & { providerIns: Institutions } & {
+  deviceType: DeviceTypes;
+  deviceFeature: DeviceFeatures;
+  provider: Users;
+  providerIns: Institutions;
   customer: Users;
-} & { customerIns: Institutions } & { oprtaions: Operations[] };
+  customerIns: Institutions;
+  MaintenanceSub: MaintenanceList[];
+};
 
 const columns = [
   {
@@ -54,7 +60,7 @@ const columns = [
   },
 ];
 
-const renderRow = (item: ManintenanceList) => (
+const renderRow = (item: MaintenanceList) => (
   <tr
     key={item.id}
     className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
@@ -190,25 +196,24 @@ const MaintenanceListPage = async ({
     }
   }
 
-  const [data, count] = await prisma.$transaction([
-    prisma.maintenanceCards.findMany({
-      where: query,
-
-      include: {
-        type: true,
-        device: true,
-        provider: true,
-        providerIns: true,
-        customer: true,
-        customerIns: true,
-        operations: true,
-      },
-
-      take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (p - 1),
-    }),
-    prisma.maintenanceCards.count(),
-  ]);
+  // Query'yi modele göre güncelle
+const [data, count] = await prisma.$transaction([
+  prisma.maintenanceCards.findMany({
+    where: query,
+    include: {
+      device: true,
+      deviceType: true,
+      deviceFeature: true,
+      provider: true,
+      providerIns: true,
+      customer: true,
+      customerIns: true,
+    },
+    take: ITEM_PER_PAGE,
+    skip: ITEM_PER_PAGE * (p - 1),
+  }),
+  prisma.maintenanceCards.count(),
+]);
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">

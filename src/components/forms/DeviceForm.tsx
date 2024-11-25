@@ -56,6 +56,10 @@ const DeviceForm = ({
     resolver: zodResolver(schema),
   });
 
+  // Seçilen kullanıcıları izle
+  const selectedOwnerId = watch("ownerId");
+  const selectedProviderId = watch("providerId");
+
   const selectedTypeId = watch("typeId"); // seçilen typeId'yi izle
 
 
@@ -96,7 +100,7 @@ const onSubmit = async (formData: Inputs) => {
     console.log("Başarılı Kayıt Sonucu:", result);
 
     router.refresh();
-    router.push('/devices');
+    router.push('/list/devices');
   } catch (error) {
     console.error('Detaylı Hata:', error);
     alert(error instanceof Error ? error.message : 'Cihaz kaydı sırasında bir hata oluştu!');
@@ -195,37 +199,39 @@ const onSubmit = async (formData: Inputs) => {
 
       <span className="text-xs text-gray-400 font-medium">Sahiplik Bilgileri</span>
       <div className="flex justify-between flex-wrap gap-4">
-        <UserSelect
-          label="Cihaz Sahibi"
-          register={register}
-          name="ownerId"
-          error={errors.ownerId}
-          defaultValue={data?.ownerId}
-        />
+            <UserSelect
+                label="Cihaz Sahibi"
+                register={register}
+                name="ownerId"
+                error={errors.ownerId}
+                defaultValue={data?.ownerId}
+            />
 
-        <InstitutionSelect
-          label="Sahip Kurum"
-          register={register}
-          name="ownerInstId"
-          error={errors.ownerInstId}
-          defaultValue={data?.ownerInstId}
-        />
+            <InstitutionSelect
+                label="Sahip Kurum"
+                register={register}
+                name="ownerInstId"
+                error={errors.ownerInstId}
+                defaultValue={data?.ownerInstId}
+                userId={selectedOwnerId}  // Seçilen cihaz sahibinin ID'si
+            />
 
-        <UserSelect
-          label="Hizmet Sağlayıcı"
-          register={register}
-          name="providerId"
-          error={errors.providerId}
-          defaultValue={data?.providerId}
-        />
+            <UserSelect
+                label="Hizmet Sağlayıcı"
+                register={register}
+                name="providerId"
+                error={errors.providerId}
+                defaultValue={data?.providerId}
+            />
 
-        <InstitutionSelect
-          label="Sağlayıcı Kurum"
-          register={register}
-          name="providerInstId"
-          error={errors.providerInstId}
-          defaultValue={data?.providerInstId}
-        />
+            <InstitutionSelect
+                label="Sağlayıcı Kurum"
+                register={register}
+                name="providerInstId"
+                error={errors.providerInstId}
+                defaultValue={data?.providerInstId}
+                userId={selectedProviderId}  // Seçilen hizmet sağlayıcının ID'si
+            />
 
         <IsgMemberSelect
           register={register}

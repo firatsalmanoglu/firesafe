@@ -16,10 +16,17 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-type OfferList = OfferCards & { paymentTerm: PaymentTermTypes } & {
-  service: Services;
-} & { creator: Users } & { creatorIns: Institutions } & { recipient: Users } & {
-  recipientIns: Institutions;
+// Tip tanımını güncelle (service'i kaldır)
+type OfferList = OfferCards & { 
+  paymentTerm: PaymentTermTypes 
+} & { 
+  creator: Users 
+} & { 
+  creatorIns: Institutions 
+} & { 
+  recipient: Users 
+} & {
+  recipientIns: Institutions
 };
 
 const columns = [
@@ -202,21 +209,18 @@ const OfferListPage = async ({
   const [data, count] = await prisma.$transaction([
     prisma.offerCards.findMany({
       where: query,
-
       include: {
         paymentTerm: true,
-        service: true,
         creator: true,
         creatorIns: true,
         recipient: true,
         recipientIns: true,
       },
-
       take: ITEM_PER_PAGE,
       skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.offerCards.count(),
-  ]);
+]);
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">

@@ -2,9 +2,24 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET metodu
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        if (userId) {
+            // Raw SQL sorgusu ile kullanıcının kurumunu bulalım
+            const userInstitution = await prisma.$queryRaw`
+                SELECT i.id, i.name, i.address, i.email, i.phone
+                FROM "Users" u
+                JOIN "Institutions" i ON u."institutionId" = i.id
+                WHERE u.id = ${userId}
+            `;
+
+            return NextResponse.json(userInstitution);
+        }
+
+        // userId yoksa tüm kurumları getir
         const institutions = await prisma.institutions.findMany({
             select: {
                 id: true,
@@ -21,28 +36,6 @@ export async function GET() {
         return NextResponse.json(institutions);
     } catch (error) {
         console.log("[INSTITUTIONS_GET]", error);
-        return new NextResponse("Internal error", { status: 500 });
-    }
-}
-
-// POST metodu
-export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-
-        const institution = await prisma.institutions.create({
-            data: {
-                name: body.name,
-                address: body.address,
-                email: body.email,
-                phone: body.phone,
-                registrationDate: body.registrationDate ? new Date(body.registrationDate) : new Date(),
-            },
-        });
-
-        return NextResponse.json(institution);
-    } catch (error) {
-        console.log("[INSTITUTIONS_POST]", error);
         return new NextResponse("Internal error", { status: 500 });
     }
 }

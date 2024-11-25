@@ -12,12 +12,13 @@ interface Institution {
 }
 
 interface InstitutionSelectProps {
-  label: string;  // label prop'unu ekledik
-  name: string;   // name prop'unu ekledik
+  label: string;
+  name: string;
   defaultValue?: string;
   register: any;
   error?: any;
   isLoading?: boolean;
+  userId?: string; // Yeni prop: seçilen kullanıcının ID'si
 }
 
 const InstitutionSelect = ({ 
@@ -26,7 +27,8 @@ const InstitutionSelect = ({
   defaultValue, 
   register, 
   error, 
-  isLoading = false 
+  isLoading = false,
+  userId 
 }: InstitutionSelectProps) => {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,13 @@ const InstitutionSelect = ({
   useEffect(() => {
     const fetchInstitutions = async () => {
       try {
-        const response = await fetch('/api/institutions');
+        setLoading(true);
+        let url = '/api/institutions';
+        if (userId) {
+          url += `?userId=${userId}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         setInstitutions(data);
       } catch (error) {
@@ -45,26 +53,16 @@ const InstitutionSelect = ({
     };
 
     fetchInstitutions();
-  }, []);
-
-  if (loading || isLoading) {
-    return (
-      <div className="flex flex-col gap-2 w-full md:w-1/3">
-        <label className="text-xs text-gray-500">{label}</label>
-        <select disabled className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full bg-gray-100">
-          <option>Yükleniyor...</option>
-        </select>
-      </div>
-    );
-  }
+  }, [userId]); // userId değiştiğinde useEffect tetiklenecek
 
   return (
     <div className="flex flex-col gap-2 w-full md:w-1/3">
       <label className="text-xs text-gray-500">{label}</label>
       <select
         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-        {...register(name)}  // name prop'unu kullan
+        {...register(name)}
         defaultValue={defaultValue || ""}
+        disabled={loading || isLoading}
       >
         <option value="">Kurum Seçiniz</option>
         {institutions.map((institution) => (

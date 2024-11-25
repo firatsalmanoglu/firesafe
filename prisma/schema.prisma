@@ -242,12 +242,17 @@ model DeviceTypes {
   MaintenanceCards MaintenanceCards[]
 
   Notifications Notifications[]
+
+  DeviceFeatures DeviceFeatures[]
 }
 
 //Güvenlik Önlemi Özellikleri CO2 - KKT - Otomatik Kapı
 model DeviceFeatures {
   id   String @id @default(cuid())
   name String
+
+  deviceTypeId  String
+  deviceType    DeviceTypes @relation(fields: [deviceTypeId], references: [id]) // İlişki Tanımı
 
   Devices Devices[]
 
@@ -260,9 +265,7 @@ model MaintenanceCards {
   maintenanceDate     DateTime @default(now())
   nextMaintenanceDate DateTime
 
-  typeId String //yapılan bakımın türü Services tablosundan
-  type   Services @relation(fields: [typeId], references: [id]) // İlişki Tanımı
-
+  
   deviceId String
   device   Devices @relation(fields: [deviceId], references: [id]) // İlişki Tanımı
 
@@ -284,8 +287,23 @@ model MaintenanceCards {
   customerInsId String
   customerIns   Institutions @relation("CustomerIns", fields: [customerInsId], references: [id]) // İlişki Tanımı
 
-  operations Operations[] //burayı bi düşün  
-  details    String
+  details    String?
+
+  MaintenanceSub MaintenanceSub[]
+}
+
+model MaintenanceSub {
+  id String @id @default(cuid())
+
+  maintenanceCardId    String
+  maintenanceCard      MaintenanceCards @relation(fields: [maintenanceCardId], references: [id]) // İlişki Tanımı
+
+  operationId String
+  opreation   Operations @relation(fields: [operationId], references: [id]) // İlişki Tanımı
+
+  detail      String?
+
+
 }
 
 //Bakım sırasında kontrol edilen şeyler bunları Serkan yazacak 15-20 tane
@@ -293,34 +311,22 @@ model Operations {
   id   String @id @default(cuid())
   name String
 
-  MaintenanceCards MaintenanceCards[] //burayı bi düşün
+  MaintenanceSub MaintenanceSub[]
 }
 
-//Teklifte sunulan hizmetin başlıkları Örneğin Rutin Bakım, Eğitim, Danışmanlık, Ürün Satışı gibi
-model Services {
-  id   String @id @default(cuid())
-  name String
 
-  OfferCards OfferCards[]
-
-  MaintenanceCards MaintenanceCards[]
-}
 
 //Teklif Kartı, kim tarafından kime verilmiş tüm detayları tutyor
 model OfferCards {
   id           String   @id @default(cuid())
   offerDate    DateTime @default(now())
   validityDate DateTime
-  unitPrice    Decimal
-  size         Decimal
-  amount       Decimal
+ 
 
   paymentTermId String
   paymentTerm   PaymentTermTypes @relation(fields: [paymentTermId], references: [id]) // İlişki Tanımı
 
-  servicesId String
-  service    Services @relation(fields: [servicesId], references: [id]) // İlişki Tanımı
-
+  
   status OfferStatus
 
   creatorId String
@@ -336,6 +342,31 @@ model OfferCards {
   recipientIns   Institutions @relation("RecipientIns", fields: [recipientInsId], references: [id]) // İlişki Tanımı
 
   details String
+
+  OfferSub OfferSub[]
+}
+
+model OfferSub {
+  id String @id @default(cuid())
+
+  offerCardId String
+  offerCard   OfferCards @relation(fields: [offerCardId], references: [id]) // İlişki Tanımı
+
+  servideId String
+  service   Services @relation(fields: [servideId], references: [id]) // İlişki Tanımı
+
+  unitPrice Decimal
+  size      Decimal
+  detail    String?
+
+}
+
+//Teklifte sunulan hizmetin başlıkları Örneğin Rutin Bakım, Eğitim, Danışmanlık, Ürün Satışı gibi
+model Services {
+  id   String @id @default(cuid())
+  name String
+
+  OfferSub OfferSub[]
 }
 
 //Teklif kartındaki ödeme türleri peşin, 3 taksit, 6 taksit, çekle vs

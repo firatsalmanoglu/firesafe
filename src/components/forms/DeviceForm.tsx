@@ -50,10 +50,14 @@ const DeviceForm = ({
   const {
     register,
     handleSubmit,
+    watch, // watch'ı ekleyelim
     formState: { errors },
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
   });
+
+  const selectedTypeId = watch("typeId"); // seçilen typeId'yi izle
+
 
   // DeviceForm.tsx içinde onSubmit fonksiyonu
 const onSubmit = async (formData: Inputs) => {
@@ -125,6 +129,8 @@ const onSubmit = async (formData: Inputs) => {
           register={register}
           error={errors.featureId}
           defaultValue={data?.featureId}
+          typeId={selectedTypeId} // typeId'yi prop olarak geç
+
         />
 
         <InputField

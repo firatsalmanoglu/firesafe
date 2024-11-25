@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import RoleSelect from "@/components/RoleSelect";
-import InstitutionSelect from "../InstitutionSelect";
+import InstitutionSelect from "@/components/InstitutionSelect";
 
 const schema = z.object({
   userName: z.string()
@@ -223,12 +223,11 @@ const UserForm = ({
       </span>
       <div className="flex justify-between flex-wrap gap-4">
         <InstitutionSelect 
-          label="Seçiniz"
-          name = "Seçiniz"
-          register={register}
-          error={errors.institutionId}
-          defaultValue={data?.institutionId}
-        />
+           label="Kurum"
+           name="institutionId"  // Önemli: name prop'u formda kullanılacak field adıyla aynı olmalı
+           register={register}
+           error={errors.institutionId}
+           defaultValue={data?.institutionId}        />
         <RoleSelect 
           register={register}
           error={errors.roleId}

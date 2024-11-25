@@ -32,7 +32,7 @@ const menuItems = [
       
       {
         icon: "/fire-extinguisher.png",
-        label: "Cihazlar",
+        label: "Yangın Güvenlik Önlemleri",
         href: "/list/devices",
         visible: ["admin", "provider", "customer", "lowcustomer", "lowprovider"],
       },

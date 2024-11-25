@@ -1,14 +1,18 @@
 // app/api/deviceFeatures/route.ts
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { Prisma } from '@prisma/client';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const features = await prisma.deviceFeatures.findMany({
-            orderBy: {
-                name: 'asc'
-            }
-        });
+        const { searchParams } = new URL(request.url);
+        const typeId = searchParams.get('typeId');
+
+        const features = await prisma.$queryRaw`
+            SELECT * FROM "DeviceFeatures"
+            WHERE "deviceTypeId" = ${typeId}
+            ORDER BY name ASC
+        `;
 
         return NextResponse.json(features);
     } catch (error) {

@@ -1,4 +1,3 @@
-// components/DeviceFeatureSelect.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,6 +5,7 @@ import { useEffect, useState } from "react";
 interface DeviceFeature {
   id: string;
   name: string;
+  deviceTypeId: string; // deviceTypeId'yi interface'e ekledik
 }
 
 interface DeviceFeatureSelectProps {
@@ -13,16 +13,29 @@ interface DeviceFeatureSelectProps {
   register: any;
   error?: any;
   isLoading?: boolean;
+  typeId?: string;
 }
 
-const DeviceFeatureSelect = ({ defaultValue, register, error, isLoading = false }: DeviceFeatureSelectProps) => {
+const DeviceFeatureSelect = ({ 
+  defaultValue, 
+  register, 
+  error, 
+  isLoading = false,
+  typeId 
+}: DeviceFeatureSelectProps) => {
   const [features, setFeatures] = useState<DeviceFeature[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchFeatures = async () => {
       try {
-        const response = await fetch('/api/deviceFeatures');
+        setLoading(true);
+        if (!typeId) {
+          setFeatures([]); // typeId yoksa features'ı temizle
+          return;
+        }
+        
+        const response = await fetch(`/api/deviceFeatures?typeId=${typeId}`);
         const data = await response.json();
         setFeatures(data);
       } catch (error) {
@@ -33,7 +46,7 @@ const DeviceFeatureSelect = ({ defaultValue, register, error, isLoading = false 
     };
 
     fetchFeatures();
-  }, []);
+  }, [typeId]); // typeId değiştiğinde useEffect'i tetikle
 
   if (loading || isLoading) {
     return (
@@ -53,6 +66,7 @@ const DeviceFeatureSelect = ({ defaultValue, register, error, isLoading = false 
         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
         {...register("featureId")}
         defaultValue={defaultValue || ""}
+        disabled={!typeId} // typeId yoksa select'i disable et
       >
         <option value="">Özellik Seçiniz</option>
         {features.map((feature) => (

@@ -254,3 +254,78 @@ export async function POST(req: Request) {
        );
    }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return new NextResponse(JSON.stringify({
+                error: "Cihaz ID'si gerekli"
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // Cihazı ve ilişkili kayıtları kontrol et
+        const device = await prisma.devices.findUnique({
+            where: { id },
+            include: {
+                MaintenanceCards: true,
+                Notifications: true
+            }
+        });
+
+        if (!device) {
+            return new NextResponse(JSON.stringify({
+                error: "Cihaz bulunamadı"
+            }), {
+                status: 404,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // İlişkili kayıtları kontrol et
+        const relatedRecords = {
+            maintenanceCards: device.MaintenanceCards.length,
+            notifications: device.Notifications.length
+        };
+
+        const hasRelatedRecords = Object.values(relatedRecords).some(count => count > 0);
+
+        if (hasRelatedRecords) {
+            return new NextResponse(JSON.stringify({
+                error: "Bu cihaza ait bakım kartları veya bildirimler bulunmaktadır. Önce ilişkili kayıtları silmelisiniz.",
+                relatedRecords
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // İlişkili kayıt yoksa, cihazı sil
+        await prisma.devices.delete({
+            where: { id }
+        });
+
+        return new NextResponse(JSON.stringify({
+            message: "Cihaz başarıyla silindi"
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+    } catch (error) {
+        console.error("[DEVICES_DELETE]", error);
+        
+        return new NextResponse(JSON.stringify({
+            error: "Cihaz silinirken bir hata oluştu",
+            details: error instanceof Error ? error.message : 'Bilinmeyen hata'
+        }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}

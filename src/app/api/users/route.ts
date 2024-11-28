@@ -69,3 +69,100 @@ export async function POST(req: Request) {
         return new NextResponse("Internal error", { status: 500 });
     }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return new NextResponse(JSON.stringify({
+                error: "Kullanıcı ID'si gerekli"
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // İlişkili kayıtları kontrol et
+        const user = await prisma.users.findUnique({
+            where: { id },
+            include: {
+                CreatorNotifications: true,
+                RecipientNotifications: true,
+                CreatorAppointments: true,
+                ProviderAppointments: true,
+                CreatorAnnouncements: true,
+                RecipientAnnouncements: true,
+                ProviderDevices: true,
+                OwnerDevices: true,
+                CreatorOfferCards: true,
+                RecipientOfferCards: true,
+                ProviderMaintenanceCards: true,
+                CustomerMaintenanceCards: true,
+                Logs: true
+            }
+        });
+
+        if (!user) {
+            return new NextResponse(JSON.stringify({
+                error: "Kullanıcı bulunamadı"
+            }), {
+                status: 404,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // İlişkili kayıtları kontrol et
+        const relatedRecords = {
+            creatorNotifications: user.CreatorNotifications.length,
+            recipientNotifications: user.RecipientNotifications.length,
+            creatorAppointments: user.CreatorAppointments.length,
+            providerAppointments: user.ProviderAppointments.length,
+            creatorAnnouncements: user.CreatorAnnouncements.length,
+            recipientAnnouncements: user.RecipientAnnouncements.length,
+            providerDevices: user.ProviderDevices.length,
+            ownerDevices: user.OwnerDevices.length,
+            creatorOfferCards: user.CreatorOfferCards.length,
+            recipientOfferCards: user.RecipientOfferCards.length,
+            providerMaintenanceCards: user.ProviderMaintenanceCards.length,
+            customerMaintenanceCards: user.CustomerMaintenanceCards.length,
+            logs: user.Logs.length
+        };
+
+        const hasRelatedRecords = Object.values(relatedRecords).some(count => count > 0);
+
+        if (hasRelatedRecords) {
+            return new NextResponse(JSON.stringify({
+                error: "Bu kullanıcının ilişkili kayıtları bulunmaktadır. Önce ilişkili kayıtları silmelisiniz.",
+                relatedRecords
+            }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // İlişkili kayıt yoksa kullanıcıyı sil
+        await prisma.users.delete({
+            where: { id }
+        });
+
+        return new NextResponse(JSON.stringify({
+            message: "Kullanıcı başarıyla silindi"
+        }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+    } catch (error) {
+        console.error("[USERS_DELETE]", error);
+        
+        return new NextResponse(JSON.stringify({
+            error: "Kullanıcı silinirken bir hata oluştu",
+            details: error instanceof Error ? error.message : 'Bilinmeyen hata'
+        }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}

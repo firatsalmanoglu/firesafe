@@ -244,6 +244,8 @@ model DeviceTypes {
   Notifications Notifications[]
 
   DeviceFeatures DeviceFeatures[]
+
+  Operations Operations[]
 }
 
 //Güvenlik Önlemi Özellikleri CO2 - KKT - Otomatik Kapı
@@ -310,6 +312,9 @@ model MaintenanceSub {
 model Operations {
   id   String @id @default(cuid())
   name String
+
+  deviceTypeId String
+  deviceType   DeviceTypes @relation(fields: [deviceTypeId], references: [id]) // İlişki Tanımı
 
   MaintenanceSub MaintenanceSub[]
 }

@@ -63,58 +63,88 @@ const InstitutionForm = ({
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-      <h1 className="text-xl font-semibold">Müşteri Kurum Kartı</h1>
-      <span className="text-xs text-gray-400 font-medium">Kurum</span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Adı"
-          name="name"
-          defaultValue={data?.name}
-          register={register}
-          error={errors?.name}
-        />
+    <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
+   <h1 className="text-xl font-semibold">Müşteri Kurum Kartı</h1>
 
-        <InputField
-          label="Adresi"
-          name="address"
-          defaultValue={data?.address}
-          register={register}
-          error={errors?.address}
-        />
+   {/* Kurum Bilgileri */}
+   <div className="space-y-4">
+       <h2 className="text-sm font-medium text-gray-500">Kurum Bilgileri</h2>
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+           <div className="flex flex-col gap-2">
+               <label className="text-xs text-gray-500">Adı</label>
+               <input
+                   type="text"
+                   {...register("name")}
+                   defaultValue={data?.name}
+                   className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+               />
+               {errors?.name && (
+                   <span className="text-xs text-red-500">{errors.name.message}</span>
+               )}
+           </div>
 
-        <InputField
-          label="Email"
-          name="email"
-          defaultValue={data?.email}
-          register={register}
-          error={errors?.email}
-        />
+           <div className="flex flex-col gap-2">
+               <label className="text-xs text-gray-500">Adresi</label>
+               <input
+                   type="text"
+                   {...register("address")}
+                   defaultValue={data?.address}
+                   className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+               />
+               {errors?.address && (
+                   <span className="text-xs text-red-500">{errors.address.message}</span>
+               )}
+           </div>
 
-        <InputField
-          label="Tel"
-          name="phone"
-          defaultValue={data?.phone}
-          register={register}
-          error={errors?.phone}
-        />
+           <div className="flex flex-col gap-2">
+               <label className="text-xs text-gray-500">Email</label>
+               <input
+                   type="email"
+                   {...register("email")}
+                   defaultValue={data?.email}
+                   className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+               />
+               {errors?.email && (
+                   <span className="text-xs text-red-500">{errors.email.message}</span>
+               )}
+           </div>
 
-        <InputField
-          label="Kayıt Tarihi"
-          name="registrationDate"
-          defaultValue={data?.registrationDate}
-          register={register}
-          type="date"
-        />
-      </div>
+           <div className="flex flex-col gap-2">
+               <label className="text-xs text-gray-500">Tel</label>
+               <input
+                   type="text"
+                   {...register("phone")}
+                   defaultValue={data?.phone}
+                   className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+               />
+               {errors?.phone && (
+                   <span className="text-xs text-red-500">{errors.phone.message}</span>
+               )}
+           </div>
 
-      <button 
-        disabled={loading}
-        className="bg-blue-400 text-white p-2 rounded-md disabled:opacity-50"
-      >
-        {loading ? 'Kaydediliyor...' : type === "create" ? "Create" : "Update"}
-      </button>
-    </form>
+           <div className="flex flex-col gap-2">
+               <label className="text-xs text-gray-500">Kayıt Tarihi</label>
+               <input
+                   type="date"
+                   {...register("registrationDate")}
+                   defaultValue={data?.registrationDate}
+                   className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+               />
+               {errors?.registrationDate && (
+                   <span className="text-xs text-red-500">{errors.registrationDate.message}</span>
+               )}
+           </div>
+       </div>
+   </div>
+
+   <button 
+       type="submit"
+       disabled={loading}
+       className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors disabled:opacity-50 mt-4"
+   >
+       {loading ? 'Kaydediliyor...' : type === "create" ? "Oluştur" : "Güncelle"}
+   </button>
+</form>
   );
 };
 

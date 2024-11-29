@@ -5,70 +5,139 @@ import { generateQRCode } from "@/lib/utils/qrcode";
 import { uploadPhoto } from "@/lib/utils/upload";
 import { DeviceStatus } from "@prisma/client";
 
-export async function GET() {
-   try {
-       const devices = await prisma.devices.findMany({
-           include: {
-               type: true,
-               feature: true,
-               owner: {
-                   select: {
-                       id: true,
-                       userName: true,
-                       firstName: true,
-                       lastName: true,
-                   }
-               },
-               ownerIns: {
-                   select: {
-                       id: true,
-                       name: true,
-                   }
-               },
-               provider: {
-                   select: {
-                       id: true,
-                       userName: true,
-                       firstName: true,
-                       lastName: true,
-                   }
-               },
-               providerIns: {
-                   select: {
-                       id: true,
-                       name: true,
-                   }
-               },
-               isgMember: {
-                   select: {
-                       id: true,
-                       name: true,
-                       isgNumber: true,
-                   }
-               }
-           },
-           orderBy: {
-               serialNumber: 'asc'
-           }
-       });
-
-       return NextResponse.json(devices);
-   } catch (error) {
-       console.error("[DEVICES_GET] Error:", error);
-       
-       if (error instanceof Error) {
-           return new NextResponse(
-               `Error: ${error.message}`,
-               { status: 500 }
-           );
-       }
-       
-       return new NextResponse(
-           'An unknown error occurred while fetching devices',
-           { status: 500 }
-       );
-   }
-}
+export async function GET(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const serialNumber = searchParams.get('serialNumber');
+ 
+        // Eğer serialNumber ile arama yapılıyorsa
+        if (serialNumber) {
+            const device = await prisma.devices.findFirst({
+                where: {
+                    serialNumber: serialNumber
+                },
+                include: {
+                    type: true,
+                    feature: true,
+                    owner: {
+                        select: {
+                            id: true,
+                            userName: true,
+                            firstName: true,
+                            lastName: true,
+                        }
+                    },
+                    ownerIns: {
+                        select: {
+                            id: true,
+                            name: true,
+                        }
+                    },
+                    provider: {
+                        select: {
+                            id: true,
+                            userName: true,
+                            firstName: true,
+                            lastName: true,
+                        }
+                    },
+                    providerIns: {
+                        select: {
+                            id: true,
+                            name: true,
+                        }
+                    },
+                    isgMember: {
+                        select: {
+                            id: true,
+                            name: true,
+                            isgNumber: true,
+                        }
+                    }
+                }
+            });
+ 
+            if (!device) {
+                return new NextResponse(JSON.stringify({
+                    error: "Cihaz bulunamadı"
+                }), { 
+                    status: 404,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+ 
+            return NextResponse.json(device);
+        }
+ 
+        // Mevcut tüm cihazları getirme kodu
+        const devices = await prisma.devices.findMany({
+            include: {
+                type: true,
+                feature: true,
+                owner: {
+                    select: {
+                        id: true,
+                        userName: true,
+                        firstName: true,
+                        lastName: true,
+                    }
+                },
+                ownerIns: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                provider: {
+                    select: {
+                        id: true,
+                        userName: true,
+                        firstName: true,
+                        lastName: true,
+                    }
+                },
+                providerIns: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                isgMember: {
+                    select: {
+                        id: true,
+                        name: true,
+                        isgNumber: true,
+                    }
+                }
+            },
+            orderBy: {
+                serialNumber: 'asc'
+            }
+        });
+ 
+        return NextResponse.json(devices);
+    } catch (error) {
+        console.error("[DEVICES_GET] Error:", error);
+        
+        if (error instanceof Error) {
+            return new NextResponse(
+                JSON.stringify({ error: error.message }),
+                { 
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+        
+        return new NextResponse(
+            JSON.stringify({ error: 'An unknown error occurred while fetching devices' }),
+            { 
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+    }
+ }
 
 export async function POST(req: Request) {
    try {

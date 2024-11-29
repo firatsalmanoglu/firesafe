@@ -103,187 +103,208 @@ const UserForm = ({
 
 
   return (
-    <form 
-    className="flex flex-col gap-4" 
-    onSubmit={handleSubmit((data) => {
-      console.log("Form Submit Event", data);
-      onSubmit(data);
-    })}
-  >
-      <h1 className="text-xl font-semibold">Yeni Kullanıcı Oluştur</h1>
+    <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
+    <h1 className="text-xl font-semibold">Yeni Kullanıcı Oluştur</h1>
 
-      <span className="text-xs text-gray-400 font-medium">
-        Kimlik Doğrulama Bilgileri
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Kullanıcı Adı"
-          name="userName"
-          defaultValue={data?.userName}
-          register={register}
-          error={errors?.userName}
-        />
-        <InputField
-          label="Email"
-          name="email"
-          defaultValue={data?.email}
-          register={register}
-          error={errors?.email}
-        />
-        <InputField
-          label="Şifre"
-          name="password"
-          type="password"
-          defaultValue={data?.password}
-          register={register}
-          error={errors?.password}
-        />
-      </div>
+    {/* Kimlik Doğrulama Bilgileri */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Kimlik Doğrulama Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Kullanıcı Adı</label>
+                <input
+                    type="text"
+                    {...register("userName")}
+                    defaultValue={data?.userName}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.userName && (
+                    <span className="text-xs text-red-500">{errors.userName.message}</span>
+                )}
+            </div>
 
-      <span className="text-xs text-gray-400 font-medium">
-        Kişisel Bilgiler
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Adı"
-          name="firstName"
-          defaultValue={data?.firstName}
-          register={register}
-          error={errors?.firstName}
-        />
-        <InputField
-          label="Soyadı"
-          name="lastName"
-          defaultValue={data?.lastName}
-          register={register}
-          error={errors?.lastName}
-        />
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Email</label>
+                <input
+                    type="email"
+                    {...register("email")}
+                    defaultValue={data?.email}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.email && (
+                    <span className="text-xs text-red-500">{errors.email.message}</span>
+                )}
+            </div>
 
-       {/* // Kan grubu seçimi */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Kan Grubu</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("bloodType")}
-            defaultValue={data?.bloodType}
-          >
-            <option value="">Seçiniz</option>
-            <option value="ARhP">A Rh Pozitif (A+)</option>
-            <option value="ARhN">A Rh Negatif (A-)</option>
-            <option value="BRhP">B Rh Pozitif (B+)</option>
-            <option value="BRhN">B Rh Negatif (B-)</option>
-            <option value="ABRhP">AB Rh Pozitif (AB+)</option>
-            <option value="ABRhN">AB Rh Negatif (AB-)</option>
-            <option value="ORhP">0 Rh Pozitif (0+)</option>
-            <option value="ORhN">0 Rh Negatif (0-)</option>
-          </select>
-          {errors.bloodType?.message && (
-            <p className="text-xs text-red-400">{errors.bloodType.message}</p>
-          )}
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Şifre</label>
+                <input
+                    type="password"
+                    {...register("password")}
+                    defaultValue={data?.password}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.password && (
+                    <span className="text-xs text-red-500">{errors.password.message}</span>
+                )}
+            </div>
+        </div>
+    </div>
+
+    {/* Kişisel Bilgiler */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Kişisel Bilgiler</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Adı</label>
+                <input
+                    type="text"
+                    {...register("firstName")}
+                    defaultValue={data?.firstName}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.firstName && (
+                    <span className="text-xs text-red-500">{errors.firstName.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Soyadı</label>
+                <input
+                    type="text"
+                    {...register("lastName")}
+                    defaultValue={data?.lastName}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.lastName && (
+                    <span className="text-xs text-red-500">{errors.lastName.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Kan Grubu</label>
+                <select
+                    {...register("bloodType")}
+                    defaultValue={data?.bloodType}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                >
+                    <option value="">Seçiniz</option>
+                    <option value="ARhP">A Rh Pozitif (A+)</option>
+                    <option value="ARhN">A Rh Negatif (A-)</option>
+                    <option value="BRhP">B Rh Pozitif (B+)</option>
+                    <option value="BRhN">B Rh Negatif (B-)</option>
+                    <option value="ABRhP">AB Rh Pozitif (AB+)</option>
+                    <option value="ABRhN">AB Rh Negatif (AB-)</option>
+                    <option value="ORhP">0 Rh Pozitif (0+)</option>
+                    <option value="ORhN">0 Rh Negatif (0-)</option>
+                </select>
+                {errors?.bloodType && (
+                    <span className="text-xs text-red-500">{errors.bloodType.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Doğum Tarihi</label>
+                <input
+                    type="date"
+                    {...register("birthday")}
+                    defaultValue={data?.birthday}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.birthday && (
+                    <span className="text-xs text-red-500">{errors.birthday.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Cinsiyet</label>
+                <select
+                    {...register("sex")}
+                    defaultValue={data?.sex}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                >
+                    <option value="">Seçiniz</option>
+                    <option value="Erkek">Erkek</option>
+                    <option value="Kadin">Kadın</option>
+                    <option value="Diger">Diğer</option>
+                </select>
+                {errors?.sex && (
+                    <span className="text-xs text-red-500">{errors.sex.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Telefon</label>
+                <input
+                    type="text"
+                    {...register("phone")}
+                    defaultValue={data?.phone}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.phone && (
+                    <span className="text-xs text-red-500">{errors.phone.message}</span>
+                )}
+            </div>
+        </div>
+    </div>
+
+    {/* Kurum ve Rol Bilgileri */}
+    {/* Kurum ve Rol Bilgileri */}
+<div className="space-y-4">
+    <h2 className="text-sm font-medium text-gray-500">Kurum ve Rol Bilgileri</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-2">
+            <InstitutionSelect 
+                label="Kurum"
+                name="institutionId"
+                register={register}
+                error={errors.institutionId}
+                defaultValue={data?.institutionId}
+            />
         </div>
 
-        <InputField
-          label="Doğum Tarihi"
-          name="birthday"
-          type="date"
-          defaultValue={data?.birthday}
-          register={register}
-          error={errors?.birthday}
-        />
-
-        {/* // Cinsiyet seçimi */}
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Cinsiyet</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("sex")}
-            defaultValue={data?.sex}
-          >
-            <option value="">Seçiniz</option>
-            <option value="Erkek">Erkek</option>
-            <option value="Kadin">Kadın</option>
-            <option value="Diger">Diğer</option>
-          </select>
-          {errors.sex?.message && (
-            <p className="text-xs text-red-400">{errors.sex.message}</p>
-          )}
+        <div className="flex flex-col gap-2">
+            <RoleSelect 
+                register={register}
+                error={errors.roleId}
+                defaultValue={data?.roleId}
+            />
         </div>
+    </div>
+</div>
 
-        <InputField
-          label="Telefon"
-          name="phone"
-          defaultValue={data?.phone}
-          register={register}
-          error={errors?.phone}
-        />
-      </div>
+    {/* Fotoğraf Yükleme */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Fotoğraf</h2>
+        <div className="flex flex-col gap-2">
+            <label className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer" htmlFor="photo">
+                <Image src="/upload.png" alt="" width={28} height={28} />
+                <span>Fotoğraf Yükle</span>
+            </label>
+            <input
+                id="photo"
+                type="file"
+                accept="image/*"
+                {...register("photo")}
+                className="hidden"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                        // File handling logic
+                    }
+                }}
+            />
+        </div>
+    </div>
 
-      <span className="text-xs text-gray-400 font-medium">
-        Kurum ve Rol Bilgileri
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InstitutionSelect 
-           label="Kurum"
-           name="institutionId"  // Önemli: name prop'u formda kullanılacak field adıyla aynı olmalı
-           register={register}
-           error={errors.institutionId}
-           defaultValue={data?.institutionId}        />
-        <RoleSelect 
-          register={register}
-          error={errors.roleId}
-          defaultValue={data?.roleId}
-        />
-      </div>
-
-      <div className="flex flex-col gap-2 w-full">
-        <label className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer" htmlFor="photo">
-          <Image src="/upload.png" alt="" width={28} height={28} />
-          <span>Fotoğraf Yükle</span>
-        </label>
-        <input
-          id="photo"
-          type="file"
-          accept="image/*"
-          {...register("photo")}
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              // Önizleme veya başka işlemler yapılabilir
-            }
-          }}
-        />
-        {/* {errors.photo?.message && (
-          <p className="text-xs text-red-400">{errors.photo.message}</p>
-        )} */}
-      </div>
-
-      {/* Form validation hatalarını göstermek için */}
-{Object.keys(errors).length > 0 && (
-  <div className="text-red-500 text-sm">
-    <p>Form hataları:</p>
-    <ul>
-      {Object.entries(errors).map(([key, error]) => {
-        const errorMessage = error && 'message' in error ? error.message : 'Validation error';
-        return (
-          <li key={key}>
-            {key}: {errorMessage?.toString()}
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-)}
-
-      <button 
+    <button 
         type="submit"
         disabled={loading}
-        onClick={() => console.log("Submit Button Clicked")}
-        className="bg-blue-400 text-white p-2 rounded-md hover:bg-blue-500 disabled:opacity-50 mt-4"
-      >
+        className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors disabled:opacity-50 mt-4"
+    >
         {loading ? "Kaydediliyor..." : type === "create" ? "Oluştur" : "Güncelle"}
-      </button>
-    </form>
+    </button>
+</form>
   );
 };
 

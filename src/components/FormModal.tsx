@@ -118,17 +118,34 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
 
     try {
         setLoading(true);
-        const response = await fetch(`/api/${table}s?id=${id}`, {
+        
+        // URL'i doğru şekilde oluştur
+        const endpoint = table === 'maintenance' 
+            ? 'maintenance-cards' 
+            : `${table}s`;
+
+        const response = await fetch(`/api/${endpoint}?id=${id}`, {
             method: "DELETE",
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || "Silme işlemi başarısız oldu");
+        // Status 204 ise json parse etmeye çalışma
+        if (response.status === 204) {
+            toast.success("Başarıyla silindi");
+            router.refresh();
+            setOpen(false);
+            return;
         }
 
-        toast.success(data.message || "Başarıyla silindi");
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+            throw new Error(data?.error || 'Silme işlemi başarısız oldu');
+        }
+
+        toast.success(data?.message || "Başarıyla silindi");
         router.refresh();
         setOpen(false);
     } catch (error: any) {

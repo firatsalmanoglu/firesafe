@@ -4,343 +4,361 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import InputField from "../InputField";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { useDebounce } from 'use-debounce';
+
+// Veri tipi tanımlamaları
+interface Device {
+    id: string;
+    serialNumber: string;
+    type: {
+        id: string;
+        name: string;
+    };
+    feature: {
+        id: string;
+        name: string;
+    };
+    owner: {
+        id: string;
+        userName: string;
+        firstName: string;
+        lastName: string;
+    };
+    ownerIns: {
+        id: string;
+        name: string;
+    };
+    provider: {
+        id: string;
+        userName: string;
+        firstName: string;
+        lastName: string;
+    };
+    providerIns: {
+        id: string;
+        name: string;
+    };
+}
+
+interface Operation {
+    id: string;
+    name: string;
+}
 
 const schema = z.object({
-
-    recordID: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    deviceSerialNumber: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    performedById: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    performedByName: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    instPerformed:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    customerId:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    customerName:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    instServed: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    maintenanceDate: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    maintenanceType: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    details: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    nexyMaintenanceDate: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    status: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    check1:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check2:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check3:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check4:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check5:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check6:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check7:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-    check8:z.literal(true, { message: "Şartları kabul etmelisiniz!" }),
-
-
+    serialNumber: z.string().min(1, { message: "Cihaz seri numarası zorunludur!" }),
+    maintenanceDate: z.string().min(1, { message: "Bakım tarihi zorunludur!" }),
+    nextMaintenanceDate: z.string().min(1, { message: "Sonraki bakım tarihi zorunludur!" }),
+    details: z.string().optional(),
+    operations: z.array(z.string()).min(1, { message: "En az bir işlem seçilmelisiniz!" })
 });
 
 type Inputs = z.infer<typeof schema>;
 
-const MaintenanceForm = ({
-  type,
-  data,
-}: {
-  type: "create" | "update";
-  data?: any;
-}) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Inputs>({
-    resolver: zodResolver(schema),
-  });
+const MaintenanceForm = ({ type, data }: { type: "create" | "update"; data?: any; }) => {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [deviceData, setDeviceData] = useState<Device | null>(null);
+    const [operations, setOperations] = useState<Operation[]>([]);
 
-  const onSubmit = handleSubmit((data) => {
-    console.log(data);
-  });
+    const {
+        register,
+        handleSubmit,
+        watch,
+        setValue,
+        formState: { errors },
+    } = useForm<Inputs>({
+        resolver: zodResolver(schema),
+        defaultValues: {
+            serialNumber: data?.serialNumber || "",
+            maintenanceDate: data?.maintenanceDate ? new Date(data.maintenanceDate).toISOString().split('T')[0] : "",
+            nextMaintenanceDate: data?.nextMaintenanceDate ? new Date(data.nextMaintenanceDate).toISOString().split('T')[0] : "",
+            details: data?.details || "",
+            operations: data?.operations || []
+        }
+    });
 
-  return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
-      <h1 className="text-xl font-semibold">Bakım Kartı</h1>
-      <span className="text-xs text-gray-400 font-medium">
-       Bakım
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-      
-        <InputField
-          label="No"
-          name="recordID"
-          defaultValue={data?.recordID}
-          register={register}
-          error={errors?.recordID}
-        />
+    // Seri numarası değişikliğini izle
+    const serialNumber = watch('serialNumber');
+    const [debouncedSerialNumber] = useDebounce(serialNumber, 500);
 
-        <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Türü</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("maintenanceType")}
-            defaultValue={data?.maintenanceType}
-          >
-            <option value="BK">Basınç Kontrolü</option>
-            <option value="CD">Değişim</option>
-            <option value="TM">Tamir</option>
-          </select>
-          {errors.maintenanceType?.message && (
-            <p className="text-xs text-red-400">
-              {errors.maintenanceType.message.toString()}
-            </p>
-          )}
-        </div>
-        <InputField
-          label="Tarihi"
-          name="maintenanceDate"
-          type= "date"
-          defaultValue={data?.maintenanceDate}
-          register={register}
-          error={errors?.maintenanceDate}
-        />
-        <InputField
-          label="Detayları"
-          name="details"
-          defaultValue={data?.details}
-          register={register}
-          error={errors?.details}
-        />
+    useEffect(() => {
+        const searchDevice = async () => {
+            if (!debouncedSerialNumber || debouncedSerialNumber.length < 3) {
+                setDeviceData(null);
+                setOperations([]);
+                return;
+            }
 
-        <InputField
-          label="Sonraki Bakım Tarihi"
-          name="nexyMaintenanceDate"
-          type= "date"
-          defaultValue={data?.nexyMaintenanceDate}
-          register={register}
-          error={errors?.nexyMaintenanceDate}
-        />
+            setSearchLoading(true);
+            try {
+                const response = await fetch(`/api/devices?serialNumber=${debouncedSerialNumber}`);
+                const data = await response.json();
 
-        <InputField
-          label="Durumu"
-          name="status"
-          defaultValue={data?.status}
-          register={register}
-          error={errors?.status}
-        />
+                if (!response.ok) {
+                    throw new Error(data.error || 'Cihaz bulunamadı');
+                }
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check1"
-            {...register("check1", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check1" className="ml-2 text-sm text-gray-600">
-            Basınç Kontrolü
-          </label>
-          {errors.check1?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check1.message.toString()}
-            </p>
-          )}
-        </div>
+                setDeviceData(data);
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check2"
-            {...register("check2", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check2" className="ml-2 text-sm text-gray-600">
-            XXX Kontrolü
-          </label>
-          {errors.check2?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check2.message.toString()}
-            </p>
-          )}
-        </div>
+                // Cihaz türüne göre operasyonları getir
+                if (data.type.id) {
+                    const operationsResponse = await fetch(`/api/operations?deviceTypeId=${data.type.id}`);
+                    const operationsData = await operationsResponse.json();
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check3"
-            {...register("check3", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check3" className="ml-2 text-sm text-gray-600">
-            YYY Kontrolü
-          </label>
-          {errors.check3?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check3.message.toString()}
-            </p>
-          )}
-        </div>
+                    if (!operationsResponse.ok) {
+                        throw new Error('İşlemler getirilemedi');
+                    }
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check4"
-            {...register("check4", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check4" className="ml-2 text-sm text-gray-600">
-            Basınç Kontrolü
-          </label>
-          {errors.check4?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check4.message.toString()}
-            </p>
-          )}
-        </div>
+                    setOperations(operationsData);
+                }
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check5"
-            {...register("check5", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check5" className="ml-2 text-sm text-gray-600">
-            XXX Kontrolü
-          </label>
-          {errors.check5?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check5.message.toString()}
-            </p>
-          )}
-        </div>
+                toast.success('Cihaz bilgileri getirildi');
+            } catch (error) {
+                console.error('Cihaz arama hatası:', error);
+                setDeviceData(null);
+                setOperations([]);
+                toast.error(error instanceof Error ? error.message : 'Cihaz bulunamadı');
+            } finally {
+                setSearchLoading(false);
+            }
+        };
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check6"
-            {...register("check6", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check6" className="ml-2 text-sm text-gray-600">
-            YYY Kontrolü
-          </label>
-          {errors.check6?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check6.message.toString()}
-            </p>
-          )}
-        </div>
+        searchDevice();
+    }, [debouncedSerialNumber]);
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check7"
-            {...register("check7", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check7" className="ml-2 text-sm text-gray-600">
-            XXX Kontrolü
-          </label>
-          {errors.check7?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check7.message.toString()}
-            </p>
-          )}
-        </div>
+    const onSubmit = async (formData: Inputs) => {
+        if (!deviceData) {
+            toast.error('Lütfen geçerli bir cihaz seçin');
+            return;
+        }
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="check8"
-            {...register("check8", { required: "Bu alan zorunludur" })}
-          />
-          <label htmlFor="check8" className="ml-2 text-sm text-gray-600">
-            YYY Kontrolü
-          </label>
-          {errors.check8?.message && (
-            <p className="text-xs text-red-400">
-              {errors.check8.message.toString()}
-            </p>
-          )}
-        </div>
+        try {
+            setLoading(true);
             
+            const response = await fetch('/api/maintenance-cards', {
+                method: type === 'create' ? 'POST' : 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    deviceId: deviceData.id,
+                    deviceTypeId: deviceData.type.id,
+                    deviceFeatureId: deviceData.feature.id,
+                    providerId: deviceData.provider.id,
+                    providerInsId: deviceData.providerIns.id,
+                    customerId: deviceData.owner.id,
+                    customerInsId: deviceData.ownerIns.id,
+                    maintenanceDate: formData.maintenanceDate,
+                    nextMaintenanceDate: formData.nextMaintenanceDate,
+                    details: formData.details,
+                    operations: formData.operations,
+                    id: data?.id
+                }),
+            });
 
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                throw new Error(responseData.error || "Bir hata oluştu");
+            }
+
+            toast.success(type === 'create' ? "Bakım kartı oluşturuldu" : "Bakım kartı güncellendi");
+            router.refresh();
+            router.push('/list/maintenances');
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error(error instanceof Error ? error.message : "Bir hata oluştu");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
+    <h1 className="text-xl font-semibold">Bakım Kartı</h1>
+
+    {/* Cihaz Bilgileri */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Cihaz Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Cihaz Seri No</label>
+                <div className="relative">
+                    <input
+                        type="text"
+                        {...register("serialNumber")}
+                        className="w-full ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                    />
+                    {searchLoading && (
+                        <div className="absolute right-2 top-2">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                        </div>
+                    )}
+                </div>
+                {errors?.serialNumber && (
+                    <span className="text-xs text-red-500">{errors.serialNumber.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Cihaz Türü</label>
+                <input
+                    type="text"
+                    value={deviceData?.type.name || ''}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                    disabled
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Cihaz Özelliği</label>
+                <input
+                    type="text"
+                    value={deviceData?.feature.name || ''}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                    disabled
+                />
+            </div>
         </div>
-        <span className="text-xs text-gray-400 font-medium">
-          Cihaz
-        </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Seri No"
-          name="deviceSerialNumber"
-          defaultValue={data?.deviceSerialNumber}
-          register={register}
-          error={errors?.deviceSerialNumber}
-        />
+    </div>
+
+    {/* Sorumlu Personel Bilgileri */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Sorumlu Personel Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Sorumlu Personel</label>
+                <input
+                    type="text"
+                    value={deviceData ? `${deviceData.owner.firstName || ''} ${deviceData.owner.lastName || ''}`.trim() || deviceData.owner.userName : ''}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                    disabled
+                />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Sorumlu Personel Kurumu</label>
+                <input
+                    type="text"
+                    value={deviceData?.ownerIns.name || ''}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                    disabled
+                />
+            </div>
         </div>
-        <span className="text-xs text-gray-400 font-medium">
-          Bakım Personeli
-        </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="ID"
-          name="performedById"
-          defaultValue={data?.performedById}
-          register={register}
-          error={errors?.performedById}
-        />
+    </div>
 
-        <InputField
-          label="Adı"
-          name="performedByName"
-          defaultValue={data?.performedByName}
-          register={register}
-          error={errors?.performedByName}
-        />
+    {/* Bakım Personeli Bilgileri */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Bakım Personeli Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Bakım Personeli</label>
+                <input
+                    type="text"
+                    value={deviceData ? `${deviceData.provider.firstName || ''} ${deviceData.provider.lastName || ''}`.trim() || deviceData.provider.userName : ''}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                    disabled
+                />
+            </div>
 
-        <InputField
-          label="Kurumu"
-          name="instPerformed"
-          defaultValue={data?.instPerformed}
-          register={register}
-          error={errors?.instPerformed}
-        />
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Bakım Yapan Kurum</label>
+                <input
+                    type="text"
+                    value={deviceData?.providerIns.name || ''}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                    disabled
+                />
+            </div>
         </div>
-        <span className="text-xs text-gray-400 font-medium">
-          Hizmet Verilen Firma
-        </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="Sorumlu Personel ID"
-          name="customerId"
-          defaultValue={data?.customerId}
-          register={register}
-          error={errors?.customerId}
-        />
-        <InputField
-          label="Sorumlu Personel Adı"
-          name="customerName"
-          defaultValue={data?.customerName}
-          register={register}
-          error={errors?.customerName}
-        />
-        <InputField
-          label="Firma"
-          name="instServed"
-          defaultValue={data?.instServed}
-          register={register}
-          error={errors?.instServed}
-        />
+    </div>
 
-       
-       
-        {/* <div className="flex flex-col gap-2 w-full md:w-1/4 justify-center">
-          <label
-            className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-            htmlFor="img"
-          >
-            <Image src="/upload.png" alt="" width={28} height={28} />
-            <span>Foto Yükleyin</span>
-          </label>
-          <input type="file" id="img" {...register("img")} className="hidden" />
-          {errors.img?.message && (
-            <p className="text-xs text-red-400">
-              {errors.img.message.toString()}
-            </p>
-          )}
-        </div> */}
+    {/* Bakım Bilgileri */}
+    <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Bakım Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Bakım Tarihi</label>
+                <input
+                    type="date"
+                    {...register("maintenanceDate")}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.maintenanceDate && (
+                    <span className="text-xs text-red-500">{errors.maintenanceDate.message}</span>
+                )}
+            </div>
 
-      </div>
-      
-      <button className="bg-blue-400 text-white p-2 rounded-md">
-        {type === "create" ? "Create" : "Update"}
-      </button>
-    </form>
-  );
+            <div className="flex flex-col gap-2">
+                <label className="text-xs text-gray-500">Sonraki Bakım Tarihi</label>
+                <input
+                    type="date"
+                    {...register("nextMaintenanceDate")}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                />
+                {errors?.nextMaintenanceDate && (
+                    <span className="text-xs text-red-500">{errors.nextMaintenanceDate.message}</span>
+                )}
+            </div>
+
+            <div className="flex flex-col gap-2 col-span-2">
+                <label className="text-xs text-gray-500">Detaylar</label>
+                <textarea
+                    {...register("details")}
+                    rows={4}
+                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm resize-none"
+                />
+                {errors?.details && (
+                    <span className="text-xs text-red-500">{errors.details.message}</span>
+                )}
+            </div>
+        </div>
+    </div>
+
+    {/* Operasyonlar */}
+    {operations.length > 0 && (
+        <div className="space-y-4">
+            <h2 className="text-sm font-medium text-gray-500">Bakım İşlemleri</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {operations.map((operation) => (
+                    <div key={operation.id} className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id={operation.id}
+                            value={operation.id}
+                            className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                            {...register('operations')}
+                        />
+                        <label 
+                            htmlFor={operation.id} 
+                            className="text-sm text-gray-700"
+                        >
+                            {operation.name}
+                        </label>
+                    </div>
+                ))}
+            </div>
+            {errors.operations && (
+                <p className="text-xs text-red-500 mt-1">{errors.operations.message}</p>
+            )}
+        </div>
+    )}
+
+    <button
+        type="submit"
+        disabled={loading || !deviceData}
+        className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors disabled:opacity-50"
+    >
+        {loading ? "İşlem yapılıyor..." : type === "create" ? "Oluştur" : "Güncelle"}
+    </button>
+</form>
+    );
 };
 
 export default MaintenanceForm;

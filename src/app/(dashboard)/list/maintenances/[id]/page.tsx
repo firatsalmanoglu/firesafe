@@ -12,6 +12,7 @@ import {
   DeviceTypes,
   MaintenanceCards,
   Services,
+  Operations,
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,30 +24,38 @@ const SingleMaintenancePage = async ({
   params: { id: string };
 }) => {
   const maintenanceId = id; // veya Number(id);
-  const maintenance:
-    | (MaintenanceCards & {
-        type: Services;
-        device: Devices;
-        deviceType: DeviceTypes;
-        deviceFeature: DeviceFeatures;
-        provider: Users;
-        providerIns: Institutions;
-        customer: Users;
-        customerIns: Institutions;
-      })
-    | null = await prisma.maintenanceCards.findUnique({
-    where: { id: maintenanceId },
-    include: {
-      type: true, // Bu kısmı ekleyerek `role` ilişkisini dahil ediyoruz
+  const maintenance: (MaintenanceCards & {
+    device: Devices;
+    deviceType: DeviceTypes;
+    deviceFeature: DeviceFeatures;
+    provider: Users;
+    providerIns: Institutions;
+    customer: Users;
+    customerIns: Institutions;
+    MaintenanceSub: {
+        id: string;
+        maintenanceCardId: string;
+        operationId: string;
+        detail: string | null;
+        opreation: Operations;
+    }[];
+}) | null = await prisma.maintenanceCards.findUnique({
+  where: { id: maintenanceId },
+  include: {
       device: true,
-      deviceFeature: true,
       deviceType: true,
+      deviceFeature: true,
       provider: true,
       providerIns: true,
       customer: true,
       customerIns: true,
-    },
-  });
+      MaintenanceSub: {
+          include: {
+              opreation: true
+          }
+      }
+  },
+});
 
   if (!maintenance) {
     return notFound();
@@ -207,10 +216,10 @@ const SingleMaintenancePage = async ({
             </div>
 
             {/* CARD */}
-            <div className="bg-lamaYellow p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[100%]">
+            {/* <div className="bg-lamaYellow p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[100%]"> */}
               {/* <div className="bg-lamaPurpleLight p-4 rounded-md w-full xl:w-2/5 flex flex-col gap-4"> */}
 
-              <Image
+              {/* <Image
                 src="/smc-maintenance.png"
                 alt=""
                 width={96}
@@ -223,7 +232,7 @@ const SingleMaintenancePage = async ({
                   {maintenance.type.name}
                 </span>
               </div>
-            </div>
+            </div> */}
 
             {/* CARD */}
             {/* <div className="bg-lamaSky p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[100%]"> */}
@@ -251,61 +260,20 @@ const SingleMaintenancePage = async ({
       </div>
       {/* RIGHT */}
       <div className="w-full xl:w-1/3 flex flex-col gap-4">
-        <h1 className="text-xl font-semibold">Bakım Listesi</h1>
-        <div className="flex flex-col gap-4 mt-4">
-          <div className="bg-lamaSkyLight rounded-md p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-medium">Lorem ipsum dolor sit</h2>
+    <h1 className="text-xl font-semibold">Bakım İşlemleri</h1>
+    <div className="flex flex-col gap-4 mt-4">
+        {maintenance.MaintenanceSub.map((sub) => (
+            <div key={sub.id} className="bg-lamaSkyLight rounded-md p-4">
+                <div className="flex items-center justify-between">
+                    <h2 className="font-medium">{sub.opreation.name}</h2>
+                </div>
+                <p className="text-sm text-gray-400 mt-1">
+                    {sub.detail || 'Detay girilmemiş'}
+                </p>
             </div>
-            <p className="text-sm text-gray-400 mt-1">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Voluptatum, expedita. Rerum, quidem facilis?
-            </p>
-          </div>
-
-          <div className="bg-lamaPurpleLight rounded-md p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-medium">Lorem ipsum dolor sit</h2>
-            </div>
-            <p className="text-sm text-gray-400 mt-1">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Voluptatum, expedita. Rerum, quidem facilis?
-            </p>
-          </div>
-
-          <div className="bg-lamaSkyLight rounded-md p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-medium">Lorem ipsum dolor sit</h2>
-            </div>
-            <p className="text-sm text-gray-400 mt-1">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Voluptatum, expedita. Rerum, quidem facilis?
-            </p>
-          </div>
-        </div>
-        {/* <div className="bg-white p-4 rounded-md"> */}
-        {/* <h1 className="text-xl font-semibold">Kısayollar</h1> */}
-        {/* <div className="mt-4 flex gap-4 flex-wrap text-xs text-gray-500"> */}
-        {/* <Link className="p-3 rounded-md bg-lamaSkyLight" href="/">
-            Cihaz&apos;ın Bakım Geçmişi
-            </Link>
-            <Link className="p-3 rounded-md bg-lamaPurpleLight" href="/">
-              Cihazla İlgili Bildirimler
-            </Link> */}
-        {/* <Link className="p-3 rounded-md bg-lamaYellowLight" href="/">
-            Kullanıcı&apos;nın Cihazları
-            </Link>
-            <Link className="p-3 rounded-md bg-pink-50" href="/">
-            Kullanıcı&apos;nın Bildirimleri
-            </Link>
-            <Link className="p-3 rounded-md bg-lamaSkyLight" href="/">
-              Hizmet Sağlayıcılarım / Müşterilerim
-            </Link> */}
-        {/* </div> */}
-        {/* </div> */}
-        {/* <Performance /> */}
-        {/* <Announcements /> */}
-      </div>
+        ))}
+    </div>
+</div>
     </div>
   );
 };

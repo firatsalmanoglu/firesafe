@@ -1,35 +1,28 @@
-"use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import InputField from "../InputField";
-import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { User, Institution } from "@/lib/types";
+import { toast } from "react-hot-toast";
 
 const schema = z.object({
-    
-    eventId: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    creatorId: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    creatorName: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    creatorOrganization: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    respPersonId:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    respPersonName:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    respPersonOrg:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    title: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    message: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    //notificationType: z.enum(["D", "B", "H"], { message: "Bu alan boş geçilemez!" }),
-    start:z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    end: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    create: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    allDay: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-
+  tittle: z.string().min(1, { message: "Randevu başlığı zorunludur!" }),
+  content: z.string().min(1, { message: "Randevu detayı zorunludur!" }),
+  start: z.string().min(1, { message: "Başlangıç tarihi zorunludur!" }),
+  end: z.string().min(1, { message: "Bitiş tarihi zorunludur!" }),
+  creatorId: z.string().min(1, { message: "Oluşturan kullanıcı kimliği zorunludur!" }),
+  creatorName: z.string().min(1, { message: "Oluşturan kullanıcı adı zorunludur!" }),
+  creatorIns: z.string().min(1, { message: "Oluşturan kurum zorunludur!" }),
+  recipientName: z.string().min(1, { message: "Randevuya gidilecek kişi adı zorunludur!" }),
+  recipientIns: z.string().min(1, { message: "Randevuya gidilecek kurum zorunludur!" })
 });
 
-type Inputs = z.infer<typeof schema>;
+type FormInputs = z.infer<typeof schema>;
 
 const EventForm = ({
   type,
-  data,
+  data
 }: {
   type: "create" | "update";
   data?: any;
@@ -37,170 +30,172 @@ const EventForm = ({
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<Inputs>({
-    resolver: zodResolver(schema),
+    setValue,
+    formState: { errors }
+  } = useForm<FormInputs>({
+    resolver: zodResolver(schema)
   });
 
-  const onSubmit = handleSubmit((data) => {
-    console.log(data);
-  });
+  const onSubmit = async (data: FormInputs) => {
+    try {
+      // Randevu oluşturma/güncelleme işlemini burada gerçekleştirin
+      console.log(data);
+      toast.success("Randevu kaydedildi!");
+    } catch (error) {
+      console.error("Randevu kaydedilemedi:", error);
+      toast.error("Randevu kaydedilemedi");
+    }
+  };
+
+  const handleCreatorIdChange = async (creatorId: string) => {
+    try {
+      const response = await fetch(`/api/users/${creatorId}`);
+      const userData = await response.json();
+
+      if (!response.ok) {
+        throw new Error('Kullanıcı bilgileri getirilemedi');
+      }
+
+      setValue("creatorName", `${userData.firstName} ${userData.lastName}`);
+      setValue("creatorIns", userData.institution.name);
+    } catch (error) {
+      console.error("Kullanıcı bilgileri getirilemedi:", error);
+      toast.error("Kullanıcı bilgileri getirilemedi");
+    }
+  };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold">Randevu Kartı</h1>
-      <span className="text-xs text-gray-400 font-medium">
-       Randevu
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="No"
-          name="eventId"
-          defaultValue={data?.eventId}
-          register={register}
-          error={errors?.eventId}
-        />
-        <InputField
-          label="Randevu Başlığı"
-          name="title"
-          defaultValue={data?.title}
-          register={register}
-          error={errors?.title}
-        />
-        <InputField
-          label="Detay"
-          name="message"
-          defaultValue={data?.message}
-          register={register}
-          error={errors?.message}
-        />
 
-        <InputField
-          label="Başlangıç Tarihi"
-          name="start"
-          type= "date"
-          defaultValue={data?.start}
-          register={register}
-          error={errors?.start}
-        />
-        <InputField
-          label="Bitiş Tarihi"
-          name="end"
-          type= "date"
-          defaultValue={data?.end}
-          register={register}
-          error={errors?.end}
-        />
-        <InputField
-          label="Oluşturma Tarihi"
-          name="create"
-          type= "date"
-          defaultValue={data?.create}
-          register={register}
-          error={errors?.create}
-        />
-         <InputField
-          label="Durumu"
-          name="allDay"
-          defaultValue={data?.allDay}
-          register={register}
-          error={errors?.allDay}
-        />
+      {/* Randevu Bilgileri */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Randevu Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="tittle">Randevu Başlığı</Label>
+            <Input
+              id="tittle"
+              {...register("tittle")}
+              placeholder="Randevu başlığı giriniz"
+            />
+            {errors.tittle && (
+              <span className="text-xs text-red-500">{errors.tittle.message}</span>
+            )}
+          </div>
 
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="content">Randevu Detayı</Label>
+            <Input
+              id="content"
+              {...register("content")}
+              placeholder="Randevu detayı giriniz"
+            />
+            {errors.content && (
+              <span className="text-xs text-red-500">{errors.content.message}</span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="start">Başlangıç Tarihi</Label>
+            <Input
+              id="start"
+              type="date"
+              {...register("start")}
+            />
+            {errors.start && (
+              <span className="text-xs text-red-500">{errors.start.message}</span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="end">Bitiş Tarihi</Label>
+            <Input
+              id="end"
+              type="date"
+              {...register("end")}
+            />
+            {errors.end && (
+              <span className="text-xs text-red-500">{errors.end.message}</span>
+            )}
+          </div>
+        </div>
       </div>
-      <span className="text-xs text-gray-400 font-medium">
-        Randevuyu Oluşturan Kişi
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="ID"
-          name="creatorId"
-          defaultValue={data?.creatorId}
-          register={register}
-          error={errors?.creatorId}
-        />
-        <InputField
-          label="Adı"
-          name="creatorName"
-          defaultValue={data?.creatorName}
-          register={register}
-          error={errors?.creatorName}
-        />
 
-        <InputField
-          label="Kurumu"
-          name="creatorOrganization"
-          defaultValue={data?.creatorOrganization}
-          register={register}
-          error={errors?.creatorOrganization}
-        />
+      {/* Oluşturan Kişi Bilgileri */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Oluşturan Kişi Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="creatorId">Oluşturan Kişi ID</Label>
+            <Input
+              id="creatorId"
+              {...register("creatorId")}
+              placeholder="Oluşturan kişi ID'sini giriniz"
+              onChange={(e) => handleCreatorIdChange(e.target.value)}
+            />
+            {errors.creatorId && (
+              <span className="text-xs text-red-500">{errors.creatorId.message}</span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="creatorName">Oluşturan Kişi Adı</Label>
+            <Input
+              id="creatorName"
+              {...register("creatorName")}
+              readOnly
+              disabled
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="creatorIns">Oluşturan Kurum</Label>
+            <Input
+              id="creatorIns"
+              {...register("creatorIns")}
+              readOnly
+              disabled
+            />
+          </div>
+        </div>
       </div>
-      <span className="text-xs text-gray-400 font-medium">
-        Randevuya Gidecek Olan Kişi
-      </span>
-      <div className="flex justify-between flex-wrap gap-4">
-        <InputField
-          label="ID"
-          name="respPersonId"
-          defaultValue={data?.respPersonId}
-          register={register}
-          error={errors?.respPersonId}
-        />
-        <InputField
-          label="Adı"
-          name="respPersonName"
-          defaultValue={data?.respPersonName}
-          register={register}
-          error={errors?.respPersonName}
-        />
-        <InputField
-          label="Kurum"
-          name="respPersonOrg"
-          defaultValue={data?.respPersonOrg}
-          register={register}
-          error={errors?.respPersonOrg}
-        />
-                
-        {/* <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Bildirim Türü</label>
-          <select
-            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-            {...register("notificationType")}
-            defaultValue={data?.notificationType}
-          >
-            <option value="D">Duyuru</option>
-            <option value="B">Bakım</option>
-            <option value="H">Hatırlatma</option>
-          </select>
-          {errors.notificationType?.message && (
-            <p className="text-xs text-red-400">
-              {errors.notificationType.message.toString()}
-            </p>
-          )}
-        </div> */}
 
-       
-       
-        {/* <div className="flex flex-col gap-2 w-full md:w-1/4 justify-center">
-          <label
-            className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-            htmlFor="img"
-          >
-            <Image src="/upload.png" alt="" width={28} height={28} />
-            <span>Foto Yükleyin</span>
-          </label>
-          <input type="file" id="img" {...register("img")} className="hidden" />
-          {errors.img?.message && (
-            <p className="text-xs text-red-400">
-              {errors.img.message.toString()}
-            </p>
-          )}
-        </div> */}
+      {/* Randevuya Gidilecek Kişi Bilgileri */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-medium text-gray-500">Randevuya Gidilecek Kişi Bilgileri</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="recipientName">Randevuya Gidilecek Kişi Adı</Label>
+            <Input
+              id="recipientName"
+              {...register("recipientName")}
+              placeholder="Randevuya gidilecek kişi adını giriniz"
+            />
+            {errors.recipientName && (
+              <span className="text-xs text-red-500">{errors.recipientName.message}</span>
+            )}
+          </div>
 
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="recipientIns">Randevuya Gidilecek Kurum</Label>
+            <Input
+              id="recipientIns"
+              {...register("recipientIns")}
+              placeholder="Randevuya gidilecek kurumu giriniz"
+            />
+            {errors.recipientIns && (
+              <span className="text-xs text-red-500">{errors.recipientIns.message}</span>
+            )}
+          </div>
+        </div>
       </div>
-      
-      <button className="bg-blue-400 text-white p-2 rounded-md">
-        {type === "create" ? "Create" : "Update"}
+
+      <button
+        type="submit"
+        className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors"
+      >
+        {type === "create" ? "Oluştur" : "Güncelle"}
       </button>
     </form>
   );

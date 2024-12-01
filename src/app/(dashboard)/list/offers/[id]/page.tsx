@@ -10,35 +10,47 @@ import {
   OfferCards,
   PaymentTermTypes,
   Services,
+  OfferSub,
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+
+// Tip tanımlamasını buraya ekleyin
+type OfferWithRelations = OfferCards & {
+  paymentTerm: PaymentTermTypes;
+  OfferSub: (OfferSub & {
+      service: Services;
+  })[];
+  creator: Users;
+  creatorIns: Institutions;
+  recipient: Users;
+  recipientIns: Institutions;
+}
+
 
 const SingleOfferPage = async ({
   params: { id },
 }: {
   params: { id: string };
 }) => {
-  const offerId = id; // veya Number(id);
-  const offer:
-    | (OfferCards & {
-        paymentTerm: PaymentTermTypes;
-        service: Services;
-        creator: Users;
-        creatorIns: Institutions;
-        recipient: Users;
-        recipientIns: Institutions;
-      })
-    | null = await prisma.offerCards.findUnique({
+  const offerId = id;
+  
+  // Sorguyu bu şekilde güncelleyin
+  const offer: OfferWithRelations | null = await prisma.offerCards.findUnique({
     where: { id: offerId },
     include: {
-      paymentTerm: true, // Bu kısmı ekleyerek `role` ilişkisini dahil ediyoruz
-      service: true,
-      creator: true,
-      creatorIns: true,
-      recipient: true,
-      recipientIns: true,
+        paymentTerm: true,
+        OfferSub: {
+            include: {
+                service: true
+            }
+        },
+        creator: true,
+        creatorIns: true,
+        recipient: true,
+        recipientIns: true,
     },
   });
 
@@ -227,7 +239,11 @@ const SingleOfferPage = async ({
               <div className="">
                 <h1 className="text-md font-semibold">Tutar</h1>
                 <span className="text-sm text-gray-400">
-                  {offer.amount.toFixed(2)}
+                  {offer.OfferSub.reduce((total, sub) => 
+                      total + (Number(sub.unitPrice) * Number(sub.size)), 
+                      0
+                    ).toFixed(2)}
+
                 </span>
               </div>
             </div>

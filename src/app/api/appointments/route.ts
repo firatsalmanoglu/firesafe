@@ -1,0 +1,76 @@
+// app/api/appointments/route.ts
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+
+// GET - Tüm randevuları getir
+export async function GET() {
+  try {
+    const appointments = await prisma.appointments.findMany({
+      include: {
+        creator: {
+          select: {
+            userName: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        creatorIns: {
+          select: {
+            name: true,
+          },
+        },
+        recipient: {
+          select: {
+            userName: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        recipientIns: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        create: 'desc',
+      },
+    });
+
+    return NextResponse.json(appointments);
+  } catch (error) {
+    console.error('Randevular getirilirken hata:', error);
+    return NextResponse.json(
+      { error: 'Randevular getirilemedi' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Yeni randevu oluştur
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    
+    const newAppointment = await prisma.appointments.create({
+      data: {
+        tittle: body.title,
+        content: body.content,
+        start: new Date(body.start),
+        end: new Date(body.end),
+        creatorId: body.creatorId,
+        creatorInsId: body.creatorInsId,
+        recipientId: body.recipientId,
+        recipientInsId: body.recipientInsId,
+      },
+    });
+
+    return NextResponse.json(newAppointment, { status: 201 });
+  } catch (error) {
+    console.error('Randevu oluşturulurken hata:', error);
+    return NextResponse.json(
+      { error: 'Randevu oluşturulamadı' },
+      { status: 500 }
+    );
+  }
+}

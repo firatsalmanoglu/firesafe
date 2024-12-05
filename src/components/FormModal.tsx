@@ -117,44 +117,109 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
     if (!id) return;
 
     try {
-        setLoading(true);
-        
-        // URL'i doğru şekilde oluştur
-        const endpoint = table === 'maintenance' 
-            ? 'maintenance-cards' 
-            : `${table}s`;
+      setLoading(true);
 
-        const response = await fetch(`/api/${endpoint}?id=${id}`, {
-            method: "DELETE",
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Status 204 ise json parse etmeye çalışma
-        if (response.status === 204) {
-            toast.success("Başarıyla silindi");
-            router.refresh();
-            setOpen(false);
-            return;
+      // Endpoint ve URL yapısı mapping'i
+      const endpointConfig: {
+        [key: string]: {
+          endpoint: string;
+          usePathParam?: boolean;
+        };
+      } = {
+        event: {
+          endpoint: 'appointments',
+          usePathParam: true
+        },
+        maintenance: {
+          endpoint: 'maintenance-cards',
+          usePathParam: false
+        },
+        notification: {
+          endpoint: 'notifications',
+          usePathParam: false
+        },
+        device: {
+          endpoint: 'devices',
+          usePathParam: false
+        },
+        institution: {
+          endpoint: 'institutions',
+          usePathParam: false
+        },
+        offer: {
+          endpoint: 'offers',
+          usePathParam: false
+        },
+        isgmember: {
+          endpoint: 'isgmembers',
+          usePathParam: false
+        },
+        user: {
+          endpoint: 'users',
+          usePathParam: false
+        },
+        customer: {
+          endpoint: 'customers',
+          usePathParam: false
+        },
+        provider: {
+          endpoint: 'providers',
+          usePathParam: false
+        },
+        pinstitution: {
+          endpoint: 'pinstitutions',
+          usePathParam: false
+        },
+        log: {
+          endpoint: 'logs',
+          usePathParam: false
+        },
+        // Diğer formlar için varsayılan yapı
+        default: {
+          endpoint: `${table}s`,
+          usePathParam: false
         }
+      };
 
-        const data = await response.json().catch(() => null);
+      // Endpoint konfigürasyonunu al
+      const config = endpointConfig[table] || endpointConfig.default;
 
-        if (!response.ok) {
-            throw new Error(data?.error || 'Silme işlemi başarısız oldu');
+      // URL'i oluştur
+      const url = config.usePathParam 
+        ? `/api/${config.endpoint}/${id}`
+        : `/api/${config.endpoint}?id=${id}`;
+
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json'
         }
+      });
 
-        toast.success(data?.message || "Başarıyla silindi");
+      // Status 204 ise json parse etmeye çalışma
+      if (response.status === 204) {
+        toast.success("Başarıyla silindi");
         router.refresh();
         setOpen(false);
+        return;
+      }
+
+      const responseData = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(responseData?.error || 'Silme işlemi başarısız oldu');
+      }
+
+      toast.success(responseData?.message || "Başarıyla silindi");
+      router.refresh();
+      setOpen(false);
     } catch (error: any) {
-        console.error("Silme hatası:", error);
-        toast.error(error.message || "Silme işlemi başarısız oldu");
+      console.error("Silme hatası:", error);
+      toast.error(error.message || "Silme işlemi başarısız oldu");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   // Silme formu
   const DeleteForm = () => (

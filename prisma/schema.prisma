@@ -385,11 +385,13 @@ model OfferRequests {
 model RequestSub {
   id String @id @default(cuid())
 
+  requiredDate  DateTime
+
   offerRequestId String
   offerRequest   OfferRequests @relation(fields: [offerRequestId], references: [id]) // İlişki Tanımı
 
-  servideId String
-  service   Services @relation(fields: [servideId], references: [id]) // İlişki Tanımı
+  serviceId String
+  service   Services @relation(fields: [serviceId], references: [id]) // İlişki Tanımı
 
   quantity  Decimal
   detail    String?
@@ -578,6 +580,10 @@ enum OfferStatus {
 enum RequestStatus {
   Aktif
   Pasif
+  Beklemede
+  Iptal
+  TeklifAlindi
+  Tamamlandi
 }
 
 enum NotificationStatus {

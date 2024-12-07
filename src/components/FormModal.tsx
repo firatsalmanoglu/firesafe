@@ -183,8 +183,8 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
         },
 
         offerRequest: {
-          endpoint: 'offerRequests',
-          usePathParam: false
+          endpoint: 'offer-requests',  // Sadece burayı değiştirdik
+          usePathParam: true          // Sadece burayı değiştirdik
         },
         // Diğer formlar için varsayılan yapı
         default: {

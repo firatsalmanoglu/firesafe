@@ -36,6 +36,16 @@ const menuItems = [
         href: "/list/devices",
         visible: ["admin", "provider", "customer", "lowcustomer", "lowprovider"],
       },
+
+
+      {
+        icon: "/offer.png",
+        label: "Teklif Talepleri",
+        href: "/list/offerRequests",
+        visible: ["admin", "provider", "customer"],
+      },
+
+
       {
         icon: "/offer.png",
         label: "Teklifler",

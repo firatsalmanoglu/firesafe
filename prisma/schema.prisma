@@ -130,6 +130,9 @@ model Users {
   CreatorAnnouncements Announcements[] @relation("AnnCreator")
 
   RecipientAnnouncements Announcements[] @relation("AnnRecipient")
+
+  OfferRequests OfferRequests[] @relation("Creator")
+
 }
 
 // ŞİRKETLER
@@ -168,6 +171,8 @@ model Institutions {
   RecipientAnnouncements Announcements[] @relation("AnnRecipientInst")
 
   IsgMembers IsgMembers[]
+
+  OfferRequests OfferRequests[] @relation("CreatorIns")
 }
 
 //ROLLER Admin- I. Seviye Müşteri- II. Seviye Müşteri- I. Seviye Hizmet Sağlayıcı-  II. Seviye Hizmet Sağlayıcı
@@ -358,12 +363,46 @@ model OfferSub {
   detail    String?
 }
 
+//Teklif Kartı, kim tarafından kime verilmiş tüm detayları tutyor
+model OfferRequests {
+  id           String   @id @default(cuid())
+  start        DateTime @default(now())
+  end          DateTime
+
+  status RequestStatus
+
+  creatorId String
+  creator   Users  @relation("Creator", fields: [creatorId], references: [id]) // İlişki Tanımı
+
+  creatorInsId String
+  creatorIns   Institutions @relation("CreatorIns", fields: [creatorInsId], references: [id]) // İlişki Tanımı
+
+  details      String
+
+  RequestSub  RequestSub[]
+}
+
+model RequestSub {
+  id String @id @default(cuid())
+
+  offerRequestId String
+  offerRequest   OfferRequests @relation(fields: [offerRequestId], references: [id]) // İlişki Tanımı
+
+  servideId String
+  service   Services @relation(fields: [servideId], references: [id]) // İlişki Tanımı
+
+  quantity  Decimal
+  detail    String?
+}
+
 //Teklifte sunulan hizmetin başlıkları Örneğin Rutin Bakım, Eğitim, Danışmanlık, Ürün Satışı gibi
 model Services {
   id   String @id @default(cuid())
   name String
 
   OfferSub OfferSub[]
+
+  RequestSub RequestSub[]
 }
 
 //Teklif kartındaki ödeme türleri peşin, 3 taksit, 6 taksit, çekle vs
@@ -534,6 +573,11 @@ enum OfferStatus {
   Onaylandi
   Red
   Beklemede
+}
+
+enum RequestStatus {
+  Aktif
+  Pasif
 }
 
 enum NotificationStatus {

@@ -55,6 +55,10 @@ const LogForm = dynamic(() => import("./forms/LogForm"), {
   loading: () => <p className="text-center py-4">Yükleniyor...</p>,
 });
 
+const OfferRequestForm = dynamic(() => import("./forms/OfferRequestForm"), {
+  loading: () => <p className="text-center py-4">Yükleniyor...</p>,
+});
+
 // Form bileşenlerini mapping objesi
 const forms: {
   [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
@@ -71,6 +75,8 @@ const forms: {
   pinstitution: (type, data) => <PInstitutionForm type={type} data={data} />,
   isgmember: (type, data) => <IsgMemberForm type={type} data={data} />,
   log: (type, data) => <LogForm type={type} data={data} />,
+  offerRequest: (type, data) => <OfferRequestForm type={type} data={data} />,
+
 };
 
 type TableType =
@@ -89,7 +95,8 @@ type TableType =
   | "result"
   | "attendance"
   | "event"
-  | "announcement";
+  | "announcement"
+  | "offerRequest";
 
 interface FormModalProps {
   table: TableType;
@@ -172,6 +179,11 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
         },
         log: {
           endpoint: 'logs',
+          usePathParam: false
+        },
+
+        offerRequest: {
+          endpoint: 'offerRequests',
           usePathParam: false
         },
         // Diğer formlar için varsayılan yapı

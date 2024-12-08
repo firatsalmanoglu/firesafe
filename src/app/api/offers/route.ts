@@ -1,22 +1,122 @@
+// app/api/offers/route.ts
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma'; // Prisma'dan veritabanı bağlantısını sağlayın.
+import prisma from '@/lib/prisma';
 
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const recipientInsId=  searchParams.get('recipientInsId');
-    const creatorInsId=  searchParams.get('creatorInsId');
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
 
-    try {
-        const offers = await prisma.offerCards.findMany({
-            where: {
-                OR: [
-                    ...recipientInsId ? [{ recipientInsId: recipientInsId }] : [],
-                    ...creatorInsId ? [{ creatorInsId: creatorInsId }] : []
-                ],
-            },
-        });
-        return NextResponse.json(offers);
-    } catch (error) {
-        return NextResponse.json({ error: 'Veri getirilemedi.' }, { status: 500 });
-    }
+    // Transaction ile kayıt işlemi
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Ana teklifi oluştur
+      const offer = await tx.offerCards.create({
+        data: {
+          offerDate: new Date(body.offerDate),
+          validityDate: new Date(body.validityDate),
+          status: body.status || "Beklemede",
+          details: body.details,
+          paymentTermId: body.paymentTermId,
+          creatorId: body.creatorId,
+          creatorInsId: body.creatorInsId,
+          recipientId: body.recipientId,
+          recipientInsId: body.recipientInsId,
+        },
+      });
+
+      // 2. Alt kalemleri oluştur
+      const offerSubPromises = body.offerSub.map((sub: any) =>
+        tx.offerSub.create({
+          data: {
+            servideId: sub.serviceId, // burada serviceId yerine servideId kullanıyoruz
+            unitPrice: parseFloat(sub.unitPrice),
+            size: parseFloat(sub.size),
+            detail: sub.detail,
+            offerCardId: offer.id,
+          },
+        })
+      );
+
+      await Promise.all(offerSubPromises);
+
+      return offer;
+    });
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Teklif oluşturma hatası:', error);
+    return new NextResponse('Teklif oluşturulurken bir hata oluştu', { status: 500 });
+  }
 }
+
+export async function GET() {
+    try {
+      const offers = await prisma.offerCards.findMany({
+        include: {
+          creator: true,
+          creatorIns: true,
+          recipient: true,
+          recipientIns: true,
+          paymentTerm: true,
+          OfferSub: {    // offerSub yerine OfferSub kullanıyoruz
+            include: {
+              service: true
+            }
+          }
+        },
+        orderBy: {
+          offerDate: 'desc'
+        }
+      });
+  
+      return NextResponse.json(offers);
+    } catch (error) {
+      console.error('Teklifler getirme hatası:', error);
+      return new NextResponse('Teklifler alınırken bir hata oluştu', { status: 500 });
+    }
+  }
+
+  // app/api/offers/route.ts
+export async function DELETE(request: Request) {
+    try {
+      // URL'den id parametresini al
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get('id');
+  
+      if (!id) {
+        return new NextResponse("ID parametresi gerekli", { status: 400 });
+      }
+  
+      // İlk olarak teklif var mı kontrol edelim
+      const existingOffer = await prisma.offerCards.findUnique({
+        where: { id },
+        include: { OfferSub: true }
+      });
+  
+      if (!existingOffer) {
+        return new NextResponse("Teklif bulunamadı", { status: 404 });
+      }
+  
+      // Transaction ile silme işlemi
+      await prisma.$transaction(async (tx) => {
+        // 1. Önce alt kalemleri sil
+        await tx.offerSub.deleteMany({
+          where: {
+            offerCardId: id
+          }
+        });
+  
+        // 2. Sonra ana teklifi sil
+        await tx.offerCards.delete({
+          where: {
+            id
+          }
+        });
+      });
+  
+      return new NextResponse(null, { status: 204 });
+      
+    } catch (error) {
+      console.error('Teklif silme hatası:', error);
+      return new NextResponse("Teklif silinirken bir hata oluştu", { status: 500 });
+    }
+  }

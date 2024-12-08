@@ -11,6 +11,7 @@ import {
     Institutions,
     RequestSub,
     Prisma,
+    Services,
 } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,7 +21,9 @@ type OfferRequestList = OfferRequests & {
   } & { 
     creator: Users 
   } & {
-    RequestSub: RequestSub[];
+    RequestSub: (RequestSub & {
+      service: Services  // service ilişkisini de ekliyoruz
+    })[];
   };
 
 const columns = [
@@ -62,18 +65,47 @@ const renderRow = (item: OfferRequestList) => (
     </td>
 
     <td className="hidden md:table-cell">{item.status}</td>
-    {/* <td className="hidden md:table-cell">{item.notificationType}</td> */}
     <td>
       <div className="flex items-center gap-2">
+        {/* Görüntüle butonu */}
         <Link href={`/list/offerRequests/${item.id}`}>
           <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
             <Image src="/view.png" alt="" width={24} height={24} />
           </button>
         </Link>
+
+        {/* Teklif Ver butonu */}
+        <FormModal 
+          table="offer" 
+          type="create" 
+          data={{ 
+            requestId: item.id,
+            // Talep sahibinin bilgileri (alıcı olarak)
+            recipientId: item.creator.id,
+            recipientInsId: item.creatorInsId,
+            // Oturum açan kullanıcının bilgileri gelecek (tedarikçi - creatorId ve creatorInsId)
+            offerDate: new Date().toISOString(), // Şu anki tarih
+            validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 gün sonra
+            status: "Beklemede",
+            // Teklif talebindeki hizmetleri teklif kalemleri olarak ekle
+            offerSub: item.RequestSub.map(sub => ({
+              serviceId: sub.serviceId,
+              service: sub.service, // Servis bilgisini de ekliyoruz
+
+              size: sub.quantity,
+              detail: sub.detail,
+              unitPrice: '', // Boş bırakıyoruz, tedarikçi dolduracak
+              isFromRequest: true // Bu alan kalem düzenlemeyi kısıtlamak için
+            }))
+          }} 
+        >
+          <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaYellow">
+            <Image src="/offer.png" alt="" width={20} height={20} />
+          </button>
+        </FormModal>
+
+        {/* Silme butonu - sadece admin görebilir */}
         {role === "admin" && (
-          // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
-          //   <Image src="/delete.png" alt="" width={16} height={16} />
-          // </button>
           <FormModal table="offerRequest" type="delete" id={item.id} />
         )}
       </div>
@@ -122,7 +154,12 @@ const OfferRequestListPage = async ({
       include: {
         creatorIns: true,  // institution bilgisini almak için
         creator: true,     // user bilgisini almak için
-        RequestSub: true   // RequestSub bilgisini almak için
+        RequestSub: {      // RequestSub bilgisini almak için
+          include: {
+            service: true  // service bilgisini de include ediyoruz
+          }
+        }
+
       },
 
       take: ITEM_PER_PAGE,

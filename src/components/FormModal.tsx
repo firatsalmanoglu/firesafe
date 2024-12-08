@@ -103,6 +103,8 @@ interface FormModalProps {
   type: "create" | "update" | "delete";
   data?: any;
   id?: string;
+  children?: React.ReactNode; // Bu satırı ekleyin
+
 }
 
 const FormModal = ({ table, type, data, id }: FormModalProps) => {

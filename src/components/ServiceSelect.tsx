@@ -15,7 +15,7 @@ interface ServiceSelectProps {
   register: UseFormRegister<any>;
   error?: FieldError;
   disabled?: boolean;
-  value?: string;
+  value?: string;         // value prop'unu ekledik
   required?: boolean;
 }
 
@@ -25,12 +25,19 @@ const ServiceSelect = ({
   register, 
   error, 
   disabled = false,
-  required = false
+  required = false,
+  value                   // value prop'unu ekledik
 }: ServiceSelectProps) => {
   // State tanımlamaları
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState(value); // Seçili değeri takip etmek için
+
+  // value prop'u değiştiğinde selectedValue'yu güncelle
+  useEffect(() => {
+    setSelectedValue(value);
+  }, [value]);
 
   // Services verilerini çek
   useEffect(() => {
@@ -47,7 +54,6 @@ const ServiceSelect = ({
 
         const data = await response.json();
         
-        // Gelen verinin array olduğunu ve boş olmadığını kontrol et
         if (!Array.isArray(data)) {
           throw new Error('Geçersiz veri formatı');
         }
@@ -80,6 +86,7 @@ const ServiceSelect = ({
         <select
           {...register(name)}
           disabled={disabled || loading}
+          value={selectedValue}  // value prop'unu kullan
           className={`
             ring-[1.5px] 
             ${error ? 'ring-red-400' : 'ring-gray-300'} 
@@ -104,7 +111,6 @@ const ServiceSelect = ({
           ))}
         </select>
 
-        {/* Loading spinner */}
         {loading && (
           <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
@@ -112,7 +118,6 @@ const ServiceSelect = ({
         )}
       </div>
       
-      {/* Error messages */}
       {fetchError && (
         <p className="text-xs text-amber-500 mt-1">
           {fetchError}

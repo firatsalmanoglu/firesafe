@@ -1,3 +1,10 @@
+// Bu form diğer formlara göre daha basit. İşte detaylı dökümü:
+// API Endpoints:
+// /api/institutions - Kurum oluşturma için POST isteği yapılan endpoint
+
+// Özel Componentler:
+// InputField - Form inputları için kullanılan temel input bileşeni (import edilmiş ama kullanılmamış)
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -64,7 +71,7 @@ const InstitutionForm = ({
 
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
-   <h1 className="text-xl font-semibold">Müşteri Kurum Kartı</h1>
+   <h1 className="text-xl font-semibold">Kurum Oluştur</h1>
 
    {/* Kurum Bilgileri */}
    <div className="space-y-4">

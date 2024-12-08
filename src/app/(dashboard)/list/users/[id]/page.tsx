@@ -56,26 +56,23 @@ const SingleUserPage = async ({
                     table="user"
                     type="update"
                     data={{
-                      id: 1,
-                      userId: "1234567890",
-                      userName: "Fırat Salmanoğlu",
-                      password: "12345678",
-                      firstName: "Fırat",
-                      lastName: "Salmanoğlu",
-                      bloodType: "ARh+",
-                      birthday: "01/01/2000",
-                      sex: "Erkek",
-                      organizationId: "009",
-                      organizationName: "Ege University",
-                      address: "Bornova. İzmir",
-                      role: ["Admin"],
-                      photo: "/avatar.png",
-                      email: "john@doe.com",
-                      phoneNumber: "1234567890",
-                      registrationDate: "10/06/2024",
+                      id: user.id,
+                      userName: user.userName,
+                      email: user.email,
+                      firstName: user.firstName,
+                      lastName: user.lastName,
+                      bloodType: user.bloodType,
+                      birthday: user.birthday ? user.birthday.toISOString().split('T')[0] : null, // date input için YYYY-MM-DD formatı
+                      sex: user.sex,
+                      phone: user.phone,
+                      photo: user.photo,
+                      institutionId: user.institutionId,
+                      roleId: user.roleId,
+                      // password alanını göndermiyoruz çünkü güvenlik açısından uygun değil
                     }}
                   />
                 )}
+
               </div>
               <p className="text-sm text-gray-500">{user.userName}</p>
               <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
@@ -173,7 +170,7 @@ const SingleUserPage = async ({
         <div className="bg-white p-4 rounded-md">
           <h1 className="text-xl font-semibold">Kısayollar</h1>
           <div className="mt-4 flex gap-4 flex-wrap text-xs text-black-500">
-            {user.roleId === "1" ? (
+            {user.roleId === "cm4c8rzz1000fakzw0pn23wf3" ? (
               <>
                 <Link
                   className="p-3 rounded-md bg-lamaSkyLight"

@@ -1,3 +1,13 @@
+// Bu teklif talebi formu için detaylı döküm:
+// API Endpoints:
+// /api/users/detail/${creatorId} - Talebi oluşturan kişinin detaylarını getiren endpoint
+// /api/offer-requests - Teklif talebi oluşturma endpoint'i (POST)
+// /api/offer-requests/${id} - Teklif talebi güncelleme endpoint'i (PUT)
+
+// Özel Componentler:
+// InputField - Form inputları için temel input bileşeni
+// ServiceSelect - Hizmet seçimi için dropdown bileşeni
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -170,7 +180,7 @@ const onSubmit = async (formData: Inputs) => {
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Yeni Teklif Talebi Oluştur" : "Teklif Talebi Düzenle"}
+        {type === "create" ? "Teklif Talebi Oluştur" : "Teklif Talebi Düzenle"}
       </h1>
 
       {/* Oluşturan Kişi Bilgileri */}

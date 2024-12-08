@@ -1,3 +1,17 @@
+// Bu formda kullanılan API'ler ve componentler biraz daha basit. İşte detaylı dökümü:
+
+// API Endpoints:
+// /api/users/detail/${creatorId} - Oluşturan kişinin detay bilgilerini getiren endpoint
+// /api/appointments - Randevu oluşturma için POST isteği yapılan endpoint
+// /api/appointments/${id} - Randevu güncelleme için PUT isteği yapılan endpoint
+
+// Özel Componentler:
+// InputField - Form inputları için kullanılan temel input bileşeni
+// UserSelect - Kullanıcı seçimi için dropdown bileşeni (burada alıcı kullanıcı seçimi için kullanılıyor)
+// InstitutionSelect - Kurum seçimi için dropdown bileşeni (burada alıcı kurum seçimi için kullanılıyor)
+
+
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -141,7 +155,7 @@ const EventForm = ({ type, data }: EventFormProps) => {
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Yeni Randevu Oluştur" : "Randevu Düzenle"}
+        {type === "create" ? "Randevu Oluştur" : "Randevu Düzenle"}
       </h1>
 
       {/* Oluşturan Kişi Bilgileri */}

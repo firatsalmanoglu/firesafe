@@ -306,7 +306,7 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
             <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
               <h2 className="text-lg font-semibold">
                 {type === "create"
-                  ? "Yeni Kayıt"
+                  ? ""
                   : type === "update"
                   ? "Kaydı Düzenle"
                   : "Kaydı Sil"}

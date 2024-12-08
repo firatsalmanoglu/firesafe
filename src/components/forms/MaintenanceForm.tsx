@@ -1,3 +1,12 @@
+// Bu form, bir bakım kartı oluşturma/güncelleme formu ve daha karmaşık API etkileşimleri içeriyor. İşte detaylı dökümü:
+// API Endpoints:
+// /api/devices?serialNumber=${debouncedSerialNumber} - Cihaz arama endpoint'i
+// /api/operations?deviceTypeId=${data.type.id} - Cihaz tipine göre bakım operasyonlarını getiren endpoint
+// /api/maintenance-cards - Bakım kartı oluşturma/güncelleme endpoint'i
+
+// Özel Componentler:
+// InputField - Form inputları için kullanılan temel input bileşeni (import edilmiş ama kullanılmamış)
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";

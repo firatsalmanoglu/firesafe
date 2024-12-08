@@ -1,3 +1,14 @@
+// Bu kullanıcı oluşturma/güncelleme formu için detaylı döküm:
+// API Endpoints:
+// /api/users - Kullanıcı oluşturma endpoint'i (POST)
+// /api/users/${id} - Kullanıcı güncelleme endpoint'i (PUT)
+
+// Özel Componentler:
+// InputField - Form inputları için temel input bileşeni
+// RoleSelect - Rol seçimi için dropdown bileşeni
+// InstitutionSelect - Kurum seçimi için dropdown bileşeni
+
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,41 +73,40 @@ const UserForm = ({
     console.log("Form Errors:", errors);
 
     try {
-      setLoading(true);
-
-      const submitData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value instanceof File) {
-          submitData.append(key, value);
-        } else if (value !== undefined && value !== null) {
-          submitData.append(key, String(value));
+        setLoading(true);
+    
+        const submitData = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+          if (value instanceof File) {
+            submitData.append(key, value);
+          } else if (value !== undefined && value !== null) {
+            submitData.append(key, String(value));
+          }
+        });
+    
+        // Update durumunda farklı endpoint ve method kullan
+        const url = type === "create" ? '/api/users' : `/api/users/${data.id}`;
+        const method = type === "create" ? 'POST' : 'PUT';
+    
+        const response = await fetch(url, {
+          method,
+          body: submitData,
+        });
+    
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error('İşlem başarısız oldu: ' + errorText);
         }
-        console.log(`${key}:`, value); // Her bir form alanının değerini görelim
-      });
-
-      console.log("Submitting to API...");
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        body: submitData,
-      });
-
-      console.log("API Response:", response);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error:', errorText);
-        throw new Error('Kullanıcı kaydı başarısız oldu: ' + errorText);
+    
+        router.refresh();
+        router.push('/list/users');
+      } catch (error) {
+        console.error('Submit Error:', error);
+        alert(type === "create" ? 'Kullanıcı kaydı sırasında bir hata oluştu!' : 'Kullanıcı güncelleme sırasında bir hata oluştu!');
+      } finally {
+        setLoading(false);
       }
-
-      router.refresh();
-      router.push('/list/users');
-    } catch (error) {
-      console.error('Submission Error:', error);
-      alert('Kullanıcı kaydı sırasında bir hata oluştu!');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   // handleSubmit'in çalışıp çalışmadığını kontrol edelim
   console.log("Form Component Rendered");
@@ -104,7 +114,7 @@ const UserForm = ({
 
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
-    <h1 className="text-xl font-semibold">Yeni Kullanıcı Oluştur</h1>
+    <h1 className="text-xl font-semibold">Kullanıcı Oluştur</h1>
 
     {/* Kimlik Doğrulama Bilgileri */}
     <div className="space-y-4">

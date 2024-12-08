@@ -1,3 +1,19 @@
+// Bu form birkaç API endpoint'i ve özel component kullanıyor. İşte detaylı bir dökümü:
+// API Endpoints:
+// /api/users/detail/${ownerId} - Cihaz sahibinin detay bilgilerini getiren endpoint
+// /api/devices - Cihaz oluşturma için POST isteği yapılan endpoint
+// /api/devices/${id} - Cihaz güncelleme için PUT isteği yapılan endpoint
+
+// Özel Componentler:
+// InputField - Form inputları için kullanılan temel input bileşeni
+// DeviceTypeSelect - Cihaz tiplerini seçmek için dropdown bileşeni
+// DeviceFeatureSelect - Seçilen cihaz tipine göre özellikleri gösteren dropdown bileşeni
+// UserSelect - Kullanıcı seçimi için dropdown bileşeni
+// InstitutionSelect - Kurum seçimi için dropdown bileşeni
+// IsgMemberSelect - ISG üyesi seçimi için dropdown bileşeni
+
+
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -169,7 +185,7 @@ const DeviceForm = ({ type, data }: DeviceFormProps) => {
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Yeni Cihaz Oluştur" : "Cihaz Düzenle"}
+        {type === "create" ? "Yangın Güvenlik Tedbiri Oluştur" : "Cihaz Düzenle"}
       </h1>
   
       {/* Cihaz Sahibi Bilgileri */}

@@ -1,3 +1,15 @@
+// Bu teklif formu oldukça kapsamlı. İşte detaylı dökümü:
+// API Endpoints:
+// /api/users/detail/${creatorId} - Teklifi oluşturan kişinin detaylarını getiren endpoint
+// /api/users/detail/${recipientId} - Alıcı kişinin detaylarını getiren endpoint
+// /api/payment-terms - Ödeme koşullarını getiren endpoint
+// /api/offers - Teklif oluşturma endpoint'i (POST)
+// /api/offers/${id} - Teklif güncelleme endpoint'i (PUT)
+
+// Özel Componentler:
+// InputField - Form inputları için temel input bileşeni
+// ServiceSelect - Hizmet seçimi için dropdown bileşeni
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -210,7 +222,7 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Yeni Teklif Oluştur" : "Teklif Düzenle"}
+        {type === "create" ? "Teklif Ver" : "Teklif Düzenle"}
       </h1>
 
       {/* Oluşturan Bilgileri */}

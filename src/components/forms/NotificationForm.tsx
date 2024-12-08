@@ -1,3 +1,16 @@
+// Bu notification (bildirim) formu için detaylı bir döküm yapalım:
+// API Endpoints:
+// /api/users/detail/${creatorId} - Bildirimi oluşturan kişinin detaylarını getiren endpoint
+// /api/devices?serialNumber=${serialNumber} - Cihaz arama endpoint'i
+// /api/notifications - Bildirim oluşturma endpoint'i (POST)
+// /api/notifications/${id} - Bildirim güncelleme endpoint'i (PUT)
+
+// Özel Componentler:
+// InputField - Form inputları için temel input bileşeni
+// UserSelect - Kullanıcı seçimi için dropdown bileşeni
+// InstitutionSelect - Kurum seçimi için dropdown bileşeni
+// NotificationTypeSelect - Bildirim tipi seçimi için dropdown bileşeni
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -214,7 +227,7 @@ const NotificationForm = ({ type, data }: NotificationFormProps) => {
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
       <h1 className="text-xl font-semibold">
-        {type === "create" ? "Yeni Bildirim Oluştur" : "Bildirim Düzenle"}
+        {type === "create" ? "Bildirim Oluştur" : "Bildirim Düzenle"}
       </h1>
 
       {/* Oluşturan Kişi Bilgileri */}

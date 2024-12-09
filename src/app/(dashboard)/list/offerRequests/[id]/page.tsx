@@ -3,13 +3,17 @@ import BigCalendar from "@/components/BigCalendar";
 import FormModal from "@/components/FormModal";
 import { role } from "@/lib/data";
 import prisma from "@/lib/prisma";
-import { OfferRequests, RequestSub, Services, RequestStatus } from "@prisma/client";
+import { OfferRequests, RequestSub, Services, Users, Institutions } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+
+
 // İlişkili tipleri tanımlayalım
 type RequestWithSubs = OfferRequests & {
+  creator: Users;
+  creatorIns: Institutions;
   RequestSub: (RequestSub & {
     service: Services
   })[]
@@ -24,6 +28,8 @@ const SingleOfferRequestPage = async ({
   const request: RequestWithSubs | null = await prisma.offerRequests.findUnique({
     where: { id },
     include: {
+      creator: true,
+      creatorIns: true,
       RequestSub: {
         include: {
           service: true
@@ -47,31 +53,57 @@ const SingleOfferRequestPage = async ({
             <div className="w-2/3 flex flex-col justify-between gap-4">
               <div className="flex items-center gap-4">
                 <h1 className="text-xl font-semibold">Teklif Talep Kartı</h1>
-                {role === "admin" && (
+                <div className="flex items-center gap-2"> {/* Butonları gruplamak için */}
                   <FormModal
-                    table="user"
-                    type="update"
+                    table="offer"
+                    type="create"
                     data={{
-                      id: 1,
-                      userId: "1234567890",
-                      userName: "Fırat Salmanoğlu",
-                      password: "12345678",
-                      firstName: "Fırat",
-                      lastName: "Salmanoğlu",
-                      bloodType: "ARh+",
-                      birthday: "01/01/2000",
-                      sex: "Erkek",
-                      organizationId: "009",
-                      organizationName: "Ege University",
-                      address: "Bornova. İzmir",
-                      role: ["Admin"],
-                      photo: "/avatar.png",
-                      email: "john@doe.com",
-                      phoneNumber: "1234567890",
-                      registrationDate: "10/06/2024",
+                      requestId: request.id,
+                      recipientId: request.creator.id,
+                      recipientInsId: request.creatorInsId,
+                      offerDate: new Date().toISOString(),
+                      validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                      status: "Beklemede",
+                      offerSub: request.RequestSub.map(sub => ({
+                        serviceId: sub.serviceId,
+                        service: sub.service,
+                        size: sub.quantity,
+                        detail: sub.detail,
+                        unitPrice: '',
+                        isFromRequest: true
+                      }))
                     }}
-                  />
-                )}
+                  >
+                    <button className="bg-lamaYellow hover:bg-yellow-500 text-white px-4 py-2 rounded-md text-sm">
+                      Teklif Ver
+                    </button>
+                  </FormModal>
+                  {role === "admin" && (
+                    <FormModal
+                      table="user"
+                      type="update"
+                      data={{
+                        id: 1,
+                        userId: "1234567890",
+                        userName: "Fırat Salmanoğlu",
+                        password: "12345678",
+                        firstName: "Fırat",
+                        lastName: "Salmanoğlu",
+                        bloodType: "ARh+",
+                        birthday: "01/01/2000",
+                        sex: "Erkek",
+                        organizationId: "009",
+                        organizationName: "Ege University",
+                        address: "Bornova. İzmir",
+                        role: ["Admin"],
+                        photo: "/avatar.png",
+                        email: "john@doe.com",
+                        phoneNumber: "1234567890",
+                        registrationDate: "10/06/2024",
+                      }}
+                    />
+                  )}
+                </div>
               </div>
               <p className="text-sm text-gray-500">{request.creatorInsId}</p>
               <p className="text-sm text-gray-500">{request.creatorId}</p>
@@ -97,8 +129,8 @@ const SingleOfferRequestPage = async ({
                 </div>
               </div>
             </div>
-          </div>         
-        </div>  
+          </div>
+        </div>
       </div>
 
       {/* RIGHT */}
@@ -109,11 +141,10 @@ const SingleOfferRequestPage = async ({
           </div>
           <div className="flex flex-col gap-4">
             {request.RequestSub.map((sub, index) => (
-              <div 
-                key={sub.id} 
-                className={`${
-                  index % 2 === 0 ? "bg-lamaSkyLight" : "bg-lamaPurpleLight"
-                } p-4 rounded-md`}
+              <div
+                key={sub.id}
+                className={`${index % 2 === 0 ? "bg-lamaSkyLight" : "bg-lamaPurpleLight"
+                  } p-4 rounded-md`}
               >
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-medium">{sub.service.name}</span>

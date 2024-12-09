@@ -118,8 +118,8 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
     type === "create"
       ? "bg-lamaYellow"
       : type === "update"
-      ? "bg-lamaSky"
-      : "bg-lamaPurple";
+        ? "bg-lamaSky"
+        : "bg-lamaPurple";
 
   // Silme işlemi
   const handleDelete = async () => {
@@ -199,7 +199,7 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
       const config = endpointConfig[table] || endpointConfig.default;
 
       // URL'i oluştur
-      const url = config.usePathParam 
+      const url = config.usePathParam
         ? `/api/${config.endpoint}/${id}`
         : `/api/${config.endpoint}?id=${id}`;
 
@@ -308,8 +308,8 @@ const FormModal = ({ table, type, data, id }: FormModalProps) => {
                 {type === "create"
                   ? ""
                   : type === "update"
-                  ? "Kaydı Düzenle"
-                  : "Kaydı Sil"}
+                    ? "Kaydı Düzenle"
+                    : "Kaydı Sil"}
               </h2>
               <button
                 onClick={() => setOpen(false)}

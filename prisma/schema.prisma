@@ -129,7 +129,6 @@ model Users {
 
   CreatorAnnouncements Announcements[] @relation("AnnCreator")
 
-  RecipientAnnouncements Announcements[] @relation("AnnRecipient")
 
   OfferRequests OfferRequests[] @relation("Creator")
 
@@ -168,7 +167,6 @@ model Institutions {
 
   CreatorAnnouncements Announcements[] @relation("AnnCreatorIns")
 
-  RecipientAnnouncements Announcements[] @relation("AnnRecipientInst")
 
   IsgMembers IsgMembers[]
 
@@ -521,11 +519,7 @@ model Announcements {
   creatorInsId String
   creatorIns   Institutions @relation("AnnCreatorIns", fields: [creatorInsId], references: [id]) // İlişki Tanımı
 
-  recipientId String
-  recipient   Users  @relation("AnnRecipient", fields: [recipientId], references: [id]) // İlişki Tanım
-
-  recipientInsId String
-  recipientInst  Institutions @relation("AnnRecipientInst", fields: [recipientInsId], references: [id]) // İlişki Tanımı
+  
 }
 
 model Teams {

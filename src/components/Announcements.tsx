@@ -1,4 +1,6 @@
+// components/Announcements.tsx
 import prisma from "@/lib/prisma";
+import AnnouncementCard from "./AnnouncementCard";
 
 const Announcements = async () => {
   const data = await prisma.announcements.findMany({
@@ -13,33 +15,15 @@ const Announcements = async () => {
         <span className="text-xs text-gray-400">Hepsi</span>
       </div>
       <div className="flex flex-col gap-4 mt-4">
-        <div className="bg-lamaSkyLight rounded-md p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium">{data[0]?.title}</h2>
-            <span className="text-xs text-gray-400 bg-white rounded-md px-1 py-1">
-              {new Intl.DateTimeFormat("tr-TR").format(data[0]?.date)}
-            </span>
-          </div>
-          <p className="text-sm text-black-400 mt-1">{data[0]?.description}</p>
-        </div>
-        <div className="bg-lamaPurpleLight rounded-md p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium">{data[1]?.title}</h2>
-            <span className="text-xs text-gray-400 bg-white rounded-md px-1 py-1">
-              {new Intl.DateTimeFormat("tr-TR").format(data[1]?.date)}
-            </span>
-          </div>
-          <p className="text-sm text-black-400 mt-1">{data[1]?.description}</p>
-        </div>
-        <div className="bg-lamaSkyLight rounded-md p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium">{data[2]?.title}</h2>
-            <span className="text-xs text-gray-400 bg-white rounded-md px-1 py-1">
-              {new Intl.DateTimeFormat("tr-TR").format(data[2]?.date)}
-            </span>
-          </div>
-          <p className="text-sm text-black-400 mt-1">{data[2]?.description}</p>
-        </div>
+        {data.map((announcement, index) => (
+          <AnnouncementCard
+            key={announcement.id}
+            title={announcement.title}
+            date={announcement.date}
+            description={announcement.description}
+            className={index % 2 === 0 ? "bg-lamaSkyLight" : "bg-lamaPurpleLight"}
+          />
+        ))}
       </div>
     </div>
   );

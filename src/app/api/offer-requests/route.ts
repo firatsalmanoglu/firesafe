@@ -34,7 +34,21 @@ export async function POST(request: Request) {
 
       await Promise.all(requestSubPromises);
 
-      return offerRequest;
+      // 3. Duyuru oluştur
+      const announcement = await tx.announcements.create({
+        data: {
+          title: "Yeni Teklif Talebi",
+          description: `${body.details} (Talep ID: ${offerRequest.id})`,
+          date: new Date(),
+          creatorId: body.creatorId,
+          creatorInsId: body.creatorInsId,
+        }
+      });
+
+      return {
+        offerRequest,
+        announcement
+      };
     });
 
     return NextResponse.json(result);
@@ -44,6 +58,7 @@ export async function POST(request: Request) {
   }
 }
 
+// GET metodu değişmedi
 export async function GET() {
   try {
     const offerRequests = await prisma.offerRequests.findMany({

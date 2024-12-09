@@ -18,9 +18,19 @@ import { useRouter } from "next/navigation";
 const schema = z.object({
     name: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
     address: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    email: z.string().email({ message: "Geçerli bir email adresi giriniz!" }),
-    phone: z.string().min(1, { message: "Bu alan boş geçilemez!" }),
-    registrationDate: z.string().optional(),
+    email: z.string()
+        .min(1, { message: "Email adresi zorunludur" })
+        .email({ message: "Geçerli bir email adresi giriniz (örnek: kurum@domain.com)" }),
+    phone: z.string()
+        .refine((val) => {
+            if (!val) return false;  // zorunlu alan olduğu için boş geçilemez
+            const phoneRegex = /^[0-9]{10}$/;
+            return phoneRegex.test(val.replace(/\s/g, ''));
+        }, {
+            message: "Telefon numarası 10 haneli olmalı ve sadece rakam içermelidir"
+        }),
+    registrationDate: z.string().default(() => new Date().toISOString().split('T')[0]),
+
 });
 
 type Inputs = z.infer<typeof schema>;
@@ -43,32 +53,39 @@ const InstitutionForm = ({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: Inputs) => {
+  const onSubmit = async (values: Inputs) => {
     try {
       setLoading(true);
-      
+
+      // Form verilerini validate et
+      const validationResult = schema.safeParse(values); // formData yerine values kullanıyoruz
+      if (!validationResult.success) {
+          console.error("Validation hatası:", validationResult.error);
+          throw new Error("Form validation hatası");
+      }
+
       const response = await fetch('/api/institutions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+          method: type === "create" ? 'POST' : 'PUT',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),  // formData yerine values kullanıyoruz
       });
 
       if (!response.ok) {
-        throw new Error('Kayıt işlemi başarısız oldu');
+          const errorText = await response.text();
+          throw new Error('İşlem başarısız oldu: ' + errorText);
       }
 
       router.refresh();
-      router.push('/list/institutions'); // veya başka bir sayfaya yönlendirme
-    } catch (error) {
+      router.push('/list/institutions');
+  } catch (error) {
       console.error('Error:', error);
-      // Hata mesajını kullanıcıya gösterebilirsiniz
-    } finally {
+      alert('Form validation hatası veya sunucu hatası oluştu!');
+  } finally {
       setLoading(false);
-    }
-  };
-
+  }
+};
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
    <h1 className="text-xl font-semibold">Kurum Oluştur</h1>
@@ -130,17 +147,20 @@ const InstitutionForm = ({
            </div>
 
            <div className="flex flex-col gap-2">
-               <label className="text-xs text-gray-500">Kayıt Tarihi</label>
-               <input
-                   type="date"
-                   {...register("registrationDate")}
-                   defaultValue={data?.registrationDate}
-                   className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
-               />
-               {errors?.registrationDate && (
-                   <span className="text-xs text-red-500">{errors.registrationDate.message}</span>
-               )}
-           </div>
+              <label className="text-xs text-gray-500">Kayıt Tarihi</label>
+              <input
+                  type="date"
+                  {...register("registrationDate")}
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                  disabled
+              />
+              {errors?.registrationDate && (
+                  <span className="text-xs text-red-500">{errors.registrationDate.message}</span>
+              )}
+          </div>
+
+           
        </div>
    </div>
 

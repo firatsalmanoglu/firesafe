@@ -25,7 +25,9 @@ const schema = z.object({
   userName: z.string()
     .min(3, { message: "Kullanıcı Adı min 3 karakter uzunluğunda olmalı!" })
     .max(20, { message: "Kullanıcı Adı maks 20 karakter uzunluğunda olmalı!" }),
-  email: z.string().email({ message: "Geçersiz e-posta!" }),
+  email: z.string()
+    .min(1, { message: "Email adresi zorunludur" })
+    .email({ message: "Geçerli bir email adresi giriniz (örnek: kullanici@domain.com)" }),
   password: z.string()
     .min(8, { message: "Şifre en az 8 karakter uzunluğunda olmalı!" }),
   firstName: z.string().min(1, { message: "Ad alanı zorunludur" }),  // required olarak değiştirildi
@@ -33,7 +35,14 @@ const schema = z.object({
   bloodType: z.enum(["ARhP", "ARhN", "BRhP", "BRhN", "ABRhP", "ABRhN", "ORhP", "ORhN"]).optional(),
   birthday: z.string().optional(),
   sex: z.enum(["Erkek", "Kadin", "Diger"]).optional(),
-  phone: z.string().optional(),
+  phone: z.string()
+    .refine((val) => {
+        if (!val) return true;  // boş bırakılabilir
+        const phoneRegex = /^[0-9]{10}$/;
+        return phoneRegex.test(val.replace(/\s/g, ''));
+    }, {
+        message: "Telefon numarası 10 haneli olmalı ve sadece rakam içermelidir"
+    }),
   photo: z.any().optional(),  // File validation'ı kaldırıldı
   institutionId: z.string().min(1, { message: "Kurum seçimi zorunludur!" }),
   roleId: z.string().min(1, { message: "Rol seçimi zorunludur!" }),
@@ -73,6 +82,10 @@ const UserForm = ({
     console.log("Form Errors:", errors);
 
     try {
+
+        console.log("Form verileri:", formData);
+        console.log("Telefon:", formData.phone);
+
         setLoading(true);
     
         const submitData = new FormData();
@@ -83,6 +96,12 @@ const UserForm = ({
             submitData.append(key, String(value));
           }
         });
+
+        const validationResult = schema.safeParse(formData);
+        if (!validationResult.success) {
+            console.error("Validation hatası:", validationResult.error);
+            throw new Error("Form validation hatası");
+        }
     
         // Update durumunda farklı endpoint ve method kullan
         const url = type === "create" ? '/api/users' : `/api/users/${data.id}`;

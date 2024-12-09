@@ -6,7 +6,7 @@ const CountChartContainer = async () => {
   const data1 = await prisma.users.count({
     where: {
       roleId: {
-        in: ["4", "5"], // roleId'si 4 veya 5 olan kullanıcıları sayısı (1-2 seviye Müşetiriler)
+        in: ["cm4c8rzz1000lakzwdkp23ue4", "cm4c8rzz1000makzwvanl038p"], // roleId'si 4 veya 5 olan kullanıcıları sayısı (1-2 seviye Müşetiriler)
       },
     },
   });
@@ -14,7 +14,7 @@ const CountChartContainer = async () => {
   const data2 = await prisma.users.count({
     where: {
       roleId: {
-        in: ["2", "3"], // roleId'si 2 veya 3 olan kullanıcıları sayısı (1-2 seviye Servis Sağlayıcılar)
+        in: ["cm4c8rzz1000jakzwuyykyw4h", "cm4c8rzz1000kakzwn9j469ab"], // roleId'si 2 veya 3 olan kullanıcıları sayısı (1-2 seviye Servis Sağlayıcılar)
       },
     },
   });

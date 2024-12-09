@@ -19,6 +19,7 @@ const OfferChart = ({
 }:{
   data: {name:string, kabul: number, red:number, beklemede:number} [];
 }) => {
+  console.log("Chart'a gelen data:", data);
   return (
     
       <ResponsiveContainer width="100%" height="90%">

@@ -59,7 +59,7 @@ interface Operation {
 
 const schema = z.object({
     serialNumber: z.string().min(1, { message: "Cihaz seri numarası zorunludur!" }),
-    maintenanceDate: z.string().min(1, { message: "Bakım tarihi zorunludur!" }),
+    maintenanceDate: z.string().default(() => new Date().toISOString().split('T')[0]),
     nextMaintenanceDate: z.string().min(1, { message: "Sonraki bakım tarihi zorunludur!" }),
     details: z.string().optional(),
     operations: z.array(z.string()).min(1, { message: "En az bir işlem seçilmelisiniz!" })
@@ -84,7 +84,7 @@ const MaintenanceForm = ({ type, data }: { type: "create" | "update"; data?: any
         resolver: zodResolver(schema),
         defaultValues: {
             serialNumber: data?.serialNumber || "",
-            maintenanceDate: data?.maintenanceDate ? new Date(data.maintenanceDate).toISOString().split('T')[0] : "",
+            maintenanceDate: new Date().toISOString().split('T')[0],
             nextMaintenanceDate: data?.nextMaintenanceDate ? new Date(data.nextMaintenanceDate).toISOString().split('T')[0] : "",
             details: data?.details || "",
             operations: data?.operations || []
@@ -292,17 +292,19 @@ const MaintenanceForm = ({ type, data }: { type: "create" | "update"; data?: any
     <div className="space-y-4">
         <h2 className="text-sm font-medium text-gray-500">Bakım Bilgileri</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Bakım Tarihi</label>
-                <input
-                    type="date"
-                    {...register("maintenanceDate")}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
-                />
-                {errors?.maintenanceDate && (
-                    <span className="text-xs text-red-500">{errors.maintenanceDate.message}</span>
-                )}
-            </div>
+        <div className="flex flex-col gap-2">
+            <label className="text-xs text-gray-500">Bakım Tarihi</label>
+            <input
+                type="date"
+                {...register("maintenanceDate")}
+                defaultValue={new Date().toISOString().split('T')[0]}
+                className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                disabled
+            />
+            {errors?.maintenanceDate && (
+                <span className="text-xs text-red-500">{errors.maintenanceDate.message}</span>
+            )}
+        </div>
 
             <div className="flex flex-col gap-2">
                 <label className="text-xs text-gray-500">Sonraki Bakım Tarihi</label>

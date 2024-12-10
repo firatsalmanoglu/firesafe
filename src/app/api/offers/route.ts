@@ -6,7 +6,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Transaction ile kayıt işlemi
     const result = await prisma.$transaction(async (tx) => {
       // 1. Ana teklifi oluştur
       const offer = await tx.offerCards.create({
@@ -27,7 +26,7 @@ export async function POST(request: Request) {
       const offerSubPromises = body.offerSub.map((sub: any) =>
         tx.offerSub.create({
           data: {
-            servideId: sub.serviceId, // burada serviceId yerine servideId kullanıyoruz
+            servideId: sub.serviceId,
             unitPrice: parseFloat(sub.unitPrice),
             size: parseFloat(sub.size),
             detail: sub.detail,
@@ -38,12 +37,26 @@ export async function POST(request: Request) {
 
       await Promise.all(offerSubPromises);
 
-      return offer;
+      // 3. Bildirim oluştur
+      const notification = await tx.notifications.create({
+        data: {
+          content: `Yeni bir teklif aldınız. Teklif detayı: ${body.details}`,
+          creatorId: body.creatorId,
+          creatorInsId: body.creatorInsId,
+          recipientId: body.recipientId,
+          recipientInsId: body.recipientInsId,
+          notificationDate: new Date(),
+          isRead: 'Okunmadi',
+          typeId: 'cm4ikqw4e0000fepvq9j26kgb'
+        }
+      });
+
+      return { offer, notification };
     });
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Teklif oluşturma hatası:', error);
+    console.error('Teklif ve bildirim oluşturma hatası:', error);
     return new NextResponse('Teklif oluşturulurken bir hata oluştu', { status: 500 });
   }
 }

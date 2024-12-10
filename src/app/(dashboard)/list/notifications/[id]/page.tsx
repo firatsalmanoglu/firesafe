@@ -30,8 +30,8 @@ const SingleNotificationPage = async ({
         recipient: Users;
         recipientIns: Institutions;
         type: NotificationTypes;
-        device: Devices;
-        deviceType: DeviceTypes;
+        device: Devices | null;  // null olabileceğini belirtiyoruz
+      deviceType: DeviceTypes | null;  // null olabileceğini belirtiyoruz
       })
     | null = await prisma.notifications.findUnique({
     where: { id: notificationId },
@@ -144,7 +144,7 @@ const SingleNotificationPage = async ({
               <div className="">
                 <h1 className="text-md font-semibold">İlgili Cihaz Seri No</h1>
                 <span className="text-sm text-gray-400">
-                  {notification.device.serialNumber}
+                {notification.device && notification.device.serialNumber}
                 </span>
               </div>
             </div>
@@ -162,7 +162,7 @@ const SingleNotificationPage = async ({
               <div className="">
                 <h1 className="text-md font-semibold">Cihaz Türü</h1>
                 <span className="text-sm text-gray-400">
-                  {notification.deviceType.name}
+                {notification.deviceType && notification.deviceType.name}
                 </span>
                 <br></br>
                 {/* <span className="text-sm text-gray-400">{notification.deviceFeature.name}</span> */}

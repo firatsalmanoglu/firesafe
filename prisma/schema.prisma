@@ -436,11 +436,11 @@ model Notifications {
   typeId String
   type   NotificationTypes @relation(fields: [typeId], references: [id]) // İlişki Tanımı
 
-  deviceId String
-  device   Devices @relation(fields: [deviceId], references: [id]) // İlişki Tanımı
+  deviceId String?
+  device   Devices? @relation(fields: [deviceId], references: [id]) // İlişki Tanımı
 
-  deviceTypeId String
-  deviceType   DeviceTypes @relation(fields: [deviceTypeId], references: [id]) // İlişki Tanımı
+  deviceTypeId String?
+  deviceType   DeviceTypes? @relation(fields: [deviceTypeId], references: [id]) // İlişki Tanımı
 }
 
 //Bildirim Türleri Hatırlatma Uyarı vs

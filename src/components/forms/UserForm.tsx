@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import InputField from "../InputField";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import RoleSelect from "@/components/RoleSelect";
 import InstitutionSelect from "@/components/InstitutionSelect";
@@ -68,11 +68,29 @@ const UserForm = ({
   const {
     register,
     handleSubmit,
+    setValue, // bunu ekledik
     formState: { errors },
   } = useForm<Inputs>({
     resolver: zodResolver(schema),
   });
 
+  // Form değerlerini ayarlamak için useEffect
+useEffect(() => {
+    if (data) {
+      setValue('institutionId', data.institutionId);
+      setValue('roleId', data.roleId);
+      
+      // Diğer alanları da setValue ile ayarlayalım ki tutarlı olsun
+      setValue('userName', data.userName);
+      setValue('email', data.email);
+      setValue('firstName', data.firstName);
+      setValue('lastName', data.lastName);
+      setValue('bloodType', data.bloodType);
+      setValue('birthday', data.birthday);
+      setValue('sex', data.sex);
+      setValue('phone', data.phone);
+    }
+  }, [data, setValue]);
   
 
   // Form submit öncesi validation hatalarını görelim

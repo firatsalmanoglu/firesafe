@@ -32,7 +32,7 @@ const schema = z.object({
   // Oluşturan Kişi Bilgileri
   creatorId: z.string().min(1, { message: "Oluşturan kişi seçimi zorunludur" }),
   creatorInsId: z.string().min(1, { message: "Oluşturan kurum seçimi zorunludur" }),
-  
+
   // Teklif Talebi Bilgileri
   start: z.string().min(1, { message: "Başlangıç tarihi zorunludur" }),
   end: z.string().min(1, { message: "Bitiş tarihi zorunludur" }),
@@ -41,8 +41,8 @@ const schema = z.object({
     .max(500, { message: "Detay en fazla 500 karakter olabilir" }),
 
   // Status alanı
-  status: z.enum(["Aktif", "Pasif", "Beklemede", "Iptal", "TeklifAlindi", "Tamamlandi"]),  
-  
+  status: z.enum(["Aktif", "Pasif", "Beklemede", "Iptal", "TeklifAlindi", "Tamamlandi"]),
+
   // Alt kalemler
   requestSub: z.array(requestSubSchema).min(1, { message: "En az bir hizmet kalemi eklemelisiniz" })
 });
@@ -72,7 +72,7 @@ const OfferRequestForm = ({ type, data }: OfferRequestFormProps) => {
     defaultValues: {
       ...data,
       status: type === "create" ? "Beklemede" : (data?.status || "Beklemede"),
-      requestSub: data?.requestSub || [{ 
+      requestSub: data?.requestSub || [{
         requiredDate: '',
         serviceId: '',
         quantity: '',
@@ -98,14 +98,31 @@ const OfferRequestForm = ({ type, data }: OfferRequestFormProps) => {
   }, [selectedCreatorId]);
 
   // Form yüklendiğinde mevcut verileri doldur
+  // Form yüklendiğinde mevcut verileri doldur
   useEffect(() => {
     if (data && type === "update") {
-      reset(data);
+      // Tarihleri doğru formata çeviriyoruz
+      setValue('start', new Date(data.start).toISOString().slice(0, 16));
+      setValue('end', new Date(data.end).toISOString().slice(0, 16));
+      setValue('creatorId', data.creatorId);
+      setValue('creatorInsId', data.creatorInsId);
+      setValue('status', data.status);
+      setValue('details', data.details);
+
+      // Alt kalemleri set ediyoruz
+      data.requestSub?.forEach((sub: any, index: number) => {
+        setValue(`requestSub.${index}.requiredDate`, new Date(sub.requiredDate).toISOString().slice(0, 16));
+        setValue(`requestSub.${index}.serviceId`, sub.serviceId);
+        setValue(`requestSub.${index}.quantity`, sub.quantity.toString());
+        setValue(`requestSub.${index}.detail`, sub.detail || '');
+      });
+
+      // Creator bilgilerini getir
       if (data.creatorId) {
         fetchCreatorInfo(data.creatorId);
       }
     }
-  }, [data, type, reset]);
+  }, [data, type, setValue]);
 
   // Creator bilgilerini getir
   const fetchCreatorInfo = async (creatorId: string) => {
@@ -125,57 +142,57 @@ const OfferRequestForm = ({ type, data }: OfferRequestFormProps) => {
   };
 
   // Form gönderimi
- // Decimal import'unu kaldırıyoruz
-// import { Decimal } from "@prisma/client/runtime/library"; 
+  // Decimal import'unu kaldırıyoruz
+  // import { Decimal } from "@prisma/client/runtime/library"; 
 
-// onSubmit fonksiyonunu güncelliyoruz
-const onSubmit = async (formData: Inputs) => {
-  const submitPromise = new Promise(async (resolve, reject) => {
-    try {
-      setLoading(true);
-      
-      const endpoint = type === "create" ? '/api/offer-requests' : `/api/offer-requests/${data?.id}`;
-      const method = type === "create" ? 'POST' : 'PUT';
+  // onSubmit fonksiyonunu güncelliyoruz
+  const onSubmit = async (formData: Inputs) => {
+    const submitPromise = new Promise(async (resolve, reject) => {
+      try {
+        setLoading(true);
 
-      const requestData = {
-        ...formData,
-        requestSub: formData.requestSub.map(sub => ({
-          ...sub,
-          quantity: sub.quantity // string olarak bırakıyoruz, API'de dönüştüreceğiz
-        }))
-      };
+        const endpoint = type === "create" ? '/api/offer-requests' : `/api/offer-requests/${data?.id}`;
+        const method = type === "create" ? 'POST' : 'PUT';
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
+        const requestData = {
+          ...formData,
+          requestSub: formData.requestSub.map(sub => ({
+            ...sub,
+            quantity: sub.quantity // string olarak bırakıyoruz, API'de dönüştüreceğiz
+          }))
+        };
 
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(errorData || 'İşlem başarısız oldu');
+        const response = await fetch(endpoint, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(errorData || 'İşlem başarısız oldu');
+        }
+
+        await response.json();
+        router.refresh();
+        router.push('/list/offerRequests');
+        resolve('İşlem başarıyla tamamlandı');
+      } catch (error) {
+        console.error('Hata:', error);
+        reject(error);
+      } finally {
+        setLoading(false);
       }
+    });
 
-      await response.json();
-      router.refresh();
-      router.push('/list/offerRequests');
-      resolve('İşlem başarıyla tamamlandı');
-    } catch (error) {
-      console.error('Hata:', error);
-      reject(error);
-    } finally {
-      setLoading(false);
-    }
-  });
-
-  toast.promise(submitPromise, {
-    loading: type === "create" ? 'Teklif talebi kaydediliyor...' : 'Teklif talebi güncelleniyor...',
-    success: type === "create" ? 'Teklif talebi başarıyla kaydedildi!' : 'Teklif talebi başarıyla güncellendi!',
-    error: (err) => `Hata: ${err.message}`
-  });
-};
+    toast.promise(submitPromise, {
+      loading: type === "create" ? 'Teklif talebi kaydediliyor...' : 'Teklif talebi güncelleniyor...',
+      success: type === "create" ? 'Teklif talebi başarıyla kaydedildi!' : 'Teklif talebi başarıyla güncellendi!',
+      error: (err) => `Hata: ${err.message}`
+    });
+  };
 
   return (
     <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
@@ -294,6 +311,7 @@ const onSubmit = async (formData: Inputs) => {
                 register={register}
                 name={`requestSub.${index}.serviceId`}
                 error={errors.requestSub?.[index]?.serviceId}
+                defaultValue={field.serviceId} // field içindeki serviceId'yi defaultValue olarak gönderiyoruz
               />
 
               <div className="flex flex-col gap-2">

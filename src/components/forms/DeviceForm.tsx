@@ -317,12 +317,13 @@ const DeviceForm = ({ type, data }: DeviceFormProps) => {
       <div className="space-y-4">
         <h2 className="text-sm font-medium text-gray-500">Hizmet Sağlayıcı Bilgileri</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InstitutionSelect
-            label="Sağlayıcı Kurum"
-            register={register}
-            name="providerInstId"
-            error={errors.providerInstId}
-          />
+        <InstitutionSelect
+  label="Sağlayıcı Kurum"
+  register={register}
+  name="providerInstId"
+  error={errors.providerInstId}
+  defaultValue={data?.providerInstId} // Bunu ekleyelim
+/>
   
           <UserSelect
             label="Hizmet Sağlayıcı"

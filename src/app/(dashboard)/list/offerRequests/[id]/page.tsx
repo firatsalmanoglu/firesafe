@@ -80,26 +80,22 @@ const SingleOfferRequestPage = async ({
                   </FormModal>
                   {role === "admin" && (
                     <FormModal
-                      table="user"
+                      table="offerRequest"
                       type="update"
                       data={{
-                        id: 1,
-                        userId: "1234567890",
-                        userName: "Fırat Salmanoğlu",
-                        password: "12345678",
-                        firstName: "Fırat",
-                        lastName: "Salmanoğlu",
-                        bloodType: "ARh+",
-                        birthday: "01/01/2000",
-                        sex: "Erkek",
-                        organizationId: "009",
-                        organizationName: "Ege University",
-                        address: "Bornova. İzmir",
-                        role: ["Admin"],
-                        photo: "/avatar.png",
-                        email: "john@doe.com",
-                        phoneNumber: "1234567890",
-                        registrationDate: "10/06/2024",
+                        id: request.id,
+                        creatorId: request.creator.id,
+                        creatorInsId: request.creatorInsId,
+                        start: request.start.toISOString(),
+                        end: request.end.toISOString(),
+                        status: request.status,
+                        details: request.details,
+                        requestSub: request.RequestSub.map(sub => ({
+                          requiredDate: new Date(sub.requiredDate).toISOString(),
+                          serviceId: sub.serviceId,
+                          quantity: sub.quantity.toString(), // Decimal'i string'e çeviriyoruz
+                          detail: sub.detail
+                        }))
                       }}
                     />
                   )}

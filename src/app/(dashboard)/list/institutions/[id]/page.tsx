@@ -45,26 +45,15 @@ const SingleInstitutionPage = async ({
                 <h1 className="text-xl font-semibold">Kurum Kartı</h1>
                 {role === "admin" && (
                   <FormModal
-                    table="user"
+                    table="institution"  // "user" yerine "institution" olarak değiştir
                     type="update"
                     data={{
-                      id: 1,
-                      userId: "1234567890",
-                      userName: "Fırat Salmanoğlu",
-                      password: "12345678",
-                      firstName: "Fırat",
-                      lastName: "Salmanoğlu",
-                      bloodType: "ARh+",
-                      birthday: "01/01/2000",
-                      sex: "Erkek",
-                      organizationId: "009",
-                      organizationName: "Ege University",
-                      address: "Bornova. İzmir",
-                      role: ["Admin"],
-                      photo: "/avatar.png",
-                      email: "john@doe.com",
-                      phoneNumber: "1234567890",
-                      registrationDate: "10/06/2024",
+                      id: inst.id,
+                      name: inst.name,
+                      address: inst.address,
+                      email: inst.email,
+                      phone: inst.phone,
+                      registrationDate: inst.registrationDate.toISOString().split('T')[0],
                     }}
                   />
                 )}

@@ -21,14 +21,14 @@ interface InstitutionSelectProps {
   userId?: string; // Yeni prop: seçilen kullanıcının ID'si
 }
 
-const InstitutionSelect = ({ 
+const InstitutionSelect = ({
   label,
   name,
-  defaultValue, 
-  register, 
-  error, 
+  defaultValue,
+  register,
+  error,
   isLoading = false,
-  userId 
+  userId
 }: InstitutionSelectProps) => {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ const InstitutionSelect = ({
         if (userId) {
           url += `?userId=${userId}`;
         }
-        
+
         const response = await fetch(url);
         const data = await response.json();
         setInstitutions(data);
@@ -61,7 +61,10 @@ const InstitutionSelect = ({
       <select
         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
         {...register(name)}
-        defaultValue={defaultValue || ""}
+        value={defaultValue || ""}
+        onChange={(e) => {
+          register(name).onChange(e);
+        }}
         disabled={loading || isLoading}
       >
         <option value="">Kurum Seçiniz</option>

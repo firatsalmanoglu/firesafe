@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { UseFormRegister, FieldError } from "react-hook-form";
 
-// Tip tanımlamaları
 interface Service {
   id: string;
   name: string;
@@ -15,8 +14,8 @@ interface ServiceSelectProps {
   register: UseFormRegister<any>;
   error?: FieldError;
   disabled?: boolean;
-  value?: string;         // value prop'unu ekledik
   required?: boolean;
+  defaultValue?: string;  // value yerine defaultValue kullanıyoruz
 }
 
 const ServiceSelect = ({ 
@@ -26,20 +25,12 @@ const ServiceSelect = ({
   error, 
   disabled = false,
   required = false,
-  value                   // value prop'unu ekledik
+  defaultValue
 }: ServiceSelectProps) => {
-  // State tanımlamaları
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [selectedValue, setSelectedValue] = useState(value); // Seçili değeri takip etmek için
 
-  // value prop'u değiştiğinde selectedValue'yu güncelle
-  useEffect(() => {
-    setSelectedValue(value);
-  }, [value]);
-
-  // Services verilerini çek
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -85,8 +76,11 @@ const ServiceSelect = ({
       <div className="relative">
         <select
           {...register(name)}
+          value={defaultValue || ""}
+          onChange={(e) => {
+            register(name).onChange(e);
+          }}
           disabled={disabled || loading}
-          value={selectedValue}  // value prop'unu kullan
           className={`
             ring-[1.5px] 
             ${error ? 'ring-red-400' : 'ring-gray-300'} 

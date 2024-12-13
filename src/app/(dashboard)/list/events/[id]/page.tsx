@@ -17,20 +17,20 @@ const SingleEventPage = async ({
   const eventId = id; // veya Number(id);
   const event:
     | (Appointments & {
-        creator: Users;
-        creatorIns: Institutions;
-        recipient: Users;
-        recipientIns: Institutions;
-      })
+      creator: Users;
+      creatorIns: Institutions;
+      recipient: Users;
+      recipientIns: Institutions;
+    })
     | null = await prisma.appointments.findUnique({
-    where: { id: eventId },
-    include: {
-      creator: true, // Bu kısmı ekleyerek `role` ilişkisini dahil ediyoruz
-      creatorIns: true,
-      recipient: true,
-      recipientIns: true,
-    },
-  });
+      where: { id: eventId },
+      include: {
+        creator: true, // Bu kısmı ekleyerek `role` ilişkisini dahil ediyoruz
+        creatorIns: true,
+        recipient: true,
+        recipientIns: true,
+      },
+    });
 
   if (!event) {
     return notFound();
@@ -60,23 +60,15 @@ const SingleEventPage = async ({
                     table="event"
                     type="update"
                     data={{
-                      id: 1,
-                      eventId: "001",
-                      creatorId: "008",
-                      creatorName: "Harun Gümüş",
-                      creatorOrganization: "Dokuz Eylül Üniversitesi",
-                      respPersonId: "123",
-                      respPersonName: "Abay Adalı",
-                      respPersonOrg: "Yaşar Üniversitesi",
-                      title: "Bakım",
-                      message: "dhfgkjdhfgkhd",
-                      // start: new Date(2024, 10, 30, 11, 0),
-                      // end: new Date(2024, 10, 30, 11, 45),
-                      // create: new Date(2024, 10, 10, 8, 45),
-                      start: "30/10/2024",
-                      end: "30/10/2024",
-                      create: "10/10/2024",
-                      allDay: false,
+                      id: event.id,
+                      creatorId: event.creator.id,
+                      creatorInsId: event.creatorIns.id,
+                      recipientId: event.recipient.id,
+                      recipientInsId: event.recipientIns.id,
+                      title: event.tittle,
+                      content: event.content,
+                      start: new Date(event.start).toISOString().slice(0, 16),
+                      end: new Date(event.end).toISOString().slice(0, 16)
                     }}
                   />
                 )}

@@ -92,7 +92,7 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
       ...data,
       status: type === "create" ? "Beklemede" : (data?.status || "Beklemede"),
       // Eğer data.offerSub varsa onu kullan, yoksa boş bir array oluştur
-      offerSub: data?.offerSub || [{ 
+      offerSub: data?.offerSub || [{
         serviceId: '',
         unitPrice: '',
         size: '',
@@ -166,6 +166,7 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
   useEffect(() => {
     if (data && type === "update") {
       reset(data);
+      setValue('paymentTermId', data.paymentTermId);  // Bunu ekleyelim
       if (data.creatorId) fetchCreatorInfo(data.creatorId);
       if (data.recipientId) fetchRecipientInfo(data.recipientId);
     }
@@ -176,7 +177,7 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
     const submitPromise = new Promise(async (resolve, reject) => {
       try {
         setLoading(true);
-        
+
         const endpoint = type === "create" ? '/api/offers' : `/api/offers/${data?.id}`;
         const method = type === "create" ? 'POST' : 'PUT';
 
@@ -329,6 +330,10 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
             <label className="text-xs text-gray-500">Ödeme Koşulu</label>
             <select
               {...register("paymentTermId")}
+              value={data?.paymentTermId || ""}
+              onChange={(e) => {
+                register("paymentTermId").onChange(e);
+              }}
               className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full disabled:bg-gray-50"
               disabled={isLoadingPaymentTerms}
             >
@@ -391,12 +396,12 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ServiceSelect
+              <ServiceSelect
                 label="Hizmet"
                 register={register}
                 name={`offerSub.${index}.serviceId`}
                 error={errors.offerSub?.[index]?.serviceId}
-                value={field.serviceId}  // defaultValue yerine value kullanıyoruz
+                defaultValue={field.serviceId}  // value yerine defaultValue kullanıyoruz
                 disabled={field.isFromRequest}
               />
 

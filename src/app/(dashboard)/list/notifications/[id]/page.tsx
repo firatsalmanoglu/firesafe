@@ -25,26 +25,26 @@ const SingleNotificationPage = async ({
   const notificationId = id; // veya Number(id);
   const notification:
     | (Notifications & {
-        creator: Users;
-        creatorIns: Institutions;
-        recipient: Users;
-        recipientIns: Institutions;
-        type: NotificationTypes;
-        device: Devices | null;  // null olabileceğini belirtiyoruz
+      creator: Users;
+      creatorIns: Institutions;
+      recipient: Users;
+      recipientIns: Institutions;
+      type: NotificationTypes;
+      device: Devices | null;  // null olabileceğini belirtiyoruz
       deviceType: DeviceTypes | null;  // null olabileceğini belirtiyoruz
-      })
+    })
     | null = await prisma.notifications.findUnique({
-    where: { id: notificationId },
-    include: {
-      creator: true, // Bu kısmı ekleyerek `role` ilişkisini dahil ediyoruz
-      creatorIns: true,
-      recipient: true,
-      recipientIns: true,
-      type: true,
-      device: true,
-      deviceType: true,
-    },
-  });
+      where: { id: notificationId },
+      include: {
+        creator: true, // Bu kısmı ekleyerek `role` ilişkisini dahil ediyoruz
+        creatorIns: true,
+        recipient: true,
+        recipientIns: true,
+        type: true,
+        device: true,
+        deviceType: true,
+      },
+    });
 
   if (!notification) {
     return notFound();
@@ -69,23 +69,23 @@ const SingleNotificationPage = async ({
             <div className="w-2/3 flex flex-col justify-between gap-4">
               <div className="flex items-center gap-4">
                 <h1 className="text-xl font-semibold">Bildirim Kartı</h1>
+                
                 {role === "admin" && (
                   <FormModal
                     table="notification"
                     type="update"
                     data={{
-                      id: "1",
-                      notificationId: "889",
-                      userId: "007",
-                      userName: "Serkan Korkmaz",
-                      //organizationName: "AAA Yangın Hizmetleri A.Ş",
-                      deviceSerialNumber: "445689",
-                      deviceOwnerId: "868548",
-                      deviceOwner: "BBG Hayvancılık A.Ş.",
-                      message: "xxxx nolu cihazın bakım tarihi yaklaşıyor...",
-                      notificationDate: "24/10/2024",
-                      isRead: "Okundu",
-                      notificationType: "Hatırlatma",
+                      id: notification.id,
+                      creatorId: notification.creator.id,
+                      creatorInsId: notification.creatorIns.id,
+                      recipientId: notification.recipient.id,
+                      recipientInsId: notification.recipientIns.id,
+                      deviceId: notification.device?.id,
+                      deviceSerialNumber: notification.device?.serialNumber,
+                      deviceTypeId: notification.deviceType?.id,
+                      typeId: notification.type.id,
+                      content: notification.content,
+                      isRead: notification.isRead
                     }}
                   />
                 )}
@@ -144,7 +144,7 @@ const SingleNotificationPage = async ({
               <div className="">
                 <h1 className="text-md font-semibold">İlgili Cihaz Seri No</h1>
                 <span className="text-sm text-gray-400">
-                {notification.device && notification.device.serialNumber}
+                  {notification.device && notification.device.serialNumber}
                 </span>
               </div>
             </div>
@@ -162,7 +162,7 @@ const SingleNotificationPage = async ({
               <div className="">
                 <h1 className="text-md font-semibold">Cihaz Türü</h1>
                 <span className="text-sm text-gray-400">
-                {notification.deviceType && notification.deviceType.name}
+                  {notification.deviceType && notification.deviceType.name}
                 </span>
                 <br></br>
                 {/* <span className="text-sm text-gray-400">{notification.deviceFeature.name}</span> */}

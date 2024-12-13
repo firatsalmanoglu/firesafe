@@ -77,20 +77,12 @@ const SingleMaintenancePage = async ({
                     table="maintenance"
                     type="update"
                     data={{
-                      id: 1,
-                      recordID: "005",
-                      deviceSerialNumber: "125487",
-                      performedById: "196587",
-                      performedByName: "Ayhan Uğur",
-                      instPerformed: "KSKS Yangın Güvenlik Ltd.",
-                      customerId: "5858475",
-                      customerName: "Ali Abalı",
-                      instServed: "AAA Tarım Sanayi A.Ş.",
-                      maintenanceDate: "13/07/2023",
-                      maintenanceType: "Bakım",
-                      details: "Basınçlar kontrol edildi",
-                      nexyMaintenanceDate: "13/07/2024",
-                      status: "OK",
+                      id: maintenance.id,
+                      serialNumber: maintenance.device.serialNumber,
+                      maintenanceDate: new Date(maintenance.maintenanceDate).toISOString().split('T')[0],
+                      nextMaintenanceDate: new Date(maintenance.nextMaintenanceDate).toISOString().split('T')[0],
+                      details: maintenance.details,
+                      operations: maintenance.MaintenanceSub.map(sub => sub.opreation.id)
                     }}
                   />
                 )}

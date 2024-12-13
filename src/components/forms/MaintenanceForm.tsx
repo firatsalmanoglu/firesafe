@@ -142,233 +142,240 @@ const MaintenanceForm = ({ type, data }: { type: "create" | "update"; data?: any
 
     const onSubmit = async (formData: Inputs) => {
         if (!deviceData) {
-            toast.error('Lütfen geçerli bir cihaz seçin');
-            return;
+          toast.error('Lütfen geçerli bir cihaz seçin');
+          return;
         }
-
+      
         try {
-            setLoading(true);
-            
-            const response = await fetch('/api/maintenance-cards', {
-                method: type === 'create' ? 'POST' : 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    deviceId: deviceData.id,
-                    deviceTypeId: deviceData.type.id,
-                    deviceFeatureId: deviceData.feature.id,
-                    providerId: deviceData.provider.id,
-                    providerInsId: deviceData.providerIns.id,
-                    customerId: deviceData.owner.id,
-                    customerInsId: deviceData.ownerIns.id,
-                    maintenanceDate: formData.maintenanceDate,
-                    nextMaintenanceDate: formData.nextMaintenanceDate,
-                    details: formData.details,
-                    operations: formData.operations,
-                    id: data?.id
-                }),
-            });
-
-            const responseData = await response.json();
-
-            if (!response.ok) {
-                throw new Error(responseData.error || "Bir hata oluştu");
-            }
-
-            toast.success(type === 'create' ? "Bakım kartı oluşturuldu" : "Bakım kartı güncellendi");
-            router.refresh();
-            router.push('/list/maintenances');
+          setLoading(true);
+          
+          // Create ve update için farklı URL ve method kullan
+          const url = type === "create" ? '/api/maintenance-cards' : `/api/maintenance-cards/${data?.id}`;
+          const method = type === "create" ? 'POST' : 'PUT';
+      
+          const requestData = {
+            deviceId: deviceData.id,
+            deviceTypeId: deviceData.type.id,
+            deviceFeatureId: deviceData.feature.id,
+            providerId: deviceData.provider.id,
+            providerInsId: deviceData.providerIns.id,
+            customerId: deviceData.owner.id,
+            customerInsId: deviceData.ownerIns.id,
+            maintenanceDate: formData.maintenanceDate,
+            nextMaintenanceDate: formData.nextMaintenanceDate,
+            details: formData.details,
+            operations: formData.operations,
+          };
+      
+          const response = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+          });
+      
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.error || "Bir hata oluştu");
+          }
+      
+          // Başarılı response
+          const result = await response.json().catch(() => ({}));
+          
+          toast.success(type === "create" ? "Bakım kartı oluşturuldu" : "Bakım kartı güncellendi");
+          router.refresh();
+          router.push('/list/maintenances');
         } catch (error) {
-            console.error('Error:', error);
-            toast.error(error instanceof Error ? error.message : "Bir hata oluştu");
+          console.error('Error:', error);
+          toast.error(error instanceof Error ? error.message : "Bir hata oluştu");
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
 
     return (
         <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
-    <h1 className="text-xl font-semibold">Bakım Kartı</h1>
+            <h1 className="text-xl font-semibold">Bakım Kartı</h1>
 
-    {/* Cihaz Bilgileri */}
-    <div className="space-y-4">
-        <h2 className="text-sm font-medium text-gray-500">Cihaz Bilgileri</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Cihaz Seri No</label>
-                <div className="relative">
-                    <input
-                        type="text"
-                        {...register("serialNumber")}
-                        className="w-full ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
-                    />
-                    {searchLoading && (
-                        <div className="absolute right-2 top-2">
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+            {/* Cihaz Bilgileri */}
+            <div className="space-y-4">
+                <h2 className="text-sm font-medium text-gray-500">Cihaz Bilgileri</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Cihaz Seri No</label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                {...register("serialNumber")}
+                                className="w-full ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                            />
+                            {searchLoading && (
+                                <div className="absolute right-2 top-2">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                                </div>
+                            )}
                         </div>
+                        {errors?.serialNumber && (
+                            <span className="text-xs text-red-500">{errors.serialNumber.message}</span>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Cihaz Türü</label>
+                        <input
+                            type="text"
+                            value={deviceData?.type.name || ''}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Cihaz Özelliği</label>
+                        <input
+                            type="text"
+                            value={deviceData?.feature.name || ''}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Sorumlu Personel Bilgileri */}
+            <div className="space-y-4">
+                <h2 className="text-sm font-medium text-gray-500">Sorumlu Personel Bilgileri</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Sorumlu Personel</label>
+                        <input
+                            type="text"
+                            value={deviceData ? `${deviceData.owner.firstName || ''} ${deviceData.owner.lastName || ''}`.trim() || deviceData.owner.userName : ''}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Sorumlu Personel Kurumu</label>
+                        <input
+                            type="text"
+                            value={deviceData?.ownerIns.name || ''}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Bakım Personeli Bilgileri */}
+            <div className="space-y-4">
+                <h2 className="text-sm font-medium text-gray-500">Bakım Personeli Bilgileri</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Bakım Personeli</label>
+                        <input
+                            type="text"
+                            value={deviceData ? `${deviceData.provider.firstName || ''} ${deviceData.provider.lastName || ''}`.trim() || deviceData.provider.userName : ''}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Bakım Yapan Kurum</label>
+                        <input
+                            type="text"
+                            value={deviceData?.providerIns.name || ''}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Bakım Bilgileri */}
+            <div className="space-y-4">
+                <h2 className="text-sm font-medium text-gray-500">Bakım Bilgileri</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Bakım Tarihi</label>
+                        <input
+                            type="date"
+                            {...register("maintenanceDate")}
+                            defaultValue={new Date().toISOString().split('T')[0]}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
+                            disabled
+                        />
+                        {errors?.maintenanceDate && (
+                            <span className="text-xs text-red-500">{errors.maintenanceDate.message}</span>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs text-gray-500">Sonraki Bakım Tarihi</label>
+                        <input
+                            type="date"
+                            {...register("nextMaintenanceDate")}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
+                        />
+                        {errors?.nextMaintenanceDate && (
+                            <span className="text-xs text-red-500">{errors.nextMaintenanceDate.message}</span>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-2 col-span-2">
+                        <label className="text-xs text-gray-500">Detaylar</label>
+                        <textarea
+                            {...register("details")}
+                            rows={4}
+                            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm resize-none"
+                        />
+                        {errors?.details && (
+                            <span className="text-xs text-red-500">{errors.details.message}</span>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Operasyonlar */}
+            {operations.length > 0 && (
+                <div className="space-y-4">
+                    <h2 className="text-sm font-medium text-gray-500">Bakım İşlemleri</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {operations.map((operation) => (
+                            <div key={operation.id} className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id={operation.id}
+                                    value={operation.id}
+                                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                                    {...register('operations')}
+                                />
+                                <label
+                                    htmlFor={operation.id}
+                                    className="text-sm text-gray-700"
+                                >
+                                    {operation.name}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                    {errors.operations && (
+                        <p className="text-xs text-red-500 mt-1">{errors.operations.message}</p>
                     )}
                 </div>
-                {errors?.serialNumber && (
-                    <span className="text-xs text-red-500">{errors.serialNumber.message}</span>
-                )}
-            </div>
-
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Cihaz Türü</label>
-                <input
-                    type="text"
-                    value={deviceData?.type.name || ''}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                    disabled
-                />
-            </div>
-
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Cihaz Özelliği</label>
-                <input
-                    type="text"
-                    value={deviceData?.feature.name || ''}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                    disabled
-                />
-            </div>
-        </div>
-    </div>
-
-    {/* Sorumlu Personel Bilgileri */}
-    <div className="space-y-4">
-        <h2 className="text-sm font-medium text-gray-500">Sorumlu Personel Bilgileri</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Sorumlu Personel</label>
-                <input
-                    type="text"
-                    value={deviceData ? `${deviceData.owner.firstName || ''} ${deviceData.owner.lastName || ''}`.trim() || deviceData.owner.userName : ''}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                    disabled
-                />
-            </div>
-
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Sorumlu Personel Kurumu</label>
-                <input
-                    type="text"
-                    value={deviceData?.ownerIns.name || ''}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                    disabled
-                />
-            </div>
-        </div>
-    </div>
-
-    {/* Bakım Personeli Bilgileri */}
-    <div className="space-y-4">
-        <h2 className="text-sm font-medium text-gray-500">Bakım Personeli Bilgileri</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Bakım Personeli</label>
-                <input
-                    type="text"
-                    value={deviceData ? `${deviceData.provider.firstName || ''} ${deviceData.provider.lastName || ''}`.trim() || deviceData.provider.userName : ''}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                    disabled
-                />
-            </div>
-
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Bakım Yapan Kurum</label>
-                <input
-                    type="text"
-                    value={deviceData?.providerIns.name || ''}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                    disabled
-                />
-            </div>
-        </div>
-    </div>
-
-    {/* Bakım Bilgileri */}
-    <div className="space-y-4">
-        <h2 className="text-sm font-medium text-gray-500">Bakım Bilgileri</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-            <label className="text-xs text-gray-500">Bakım Tarihi</label>
-            <input
-                type="date"
-                {...register("maintenanceDate")}
-                defaultValue={new Date().toISOString().split('T')[0]}
-                className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm bg-gray-50"
-                disabled
-            />
-            {errors?.maintenanceDate && (
-                <span className="text-xs text-red-500">{errors.maintenanceDate.message}</span>
             )}
-        </div>
 
-            <div className="flex flex-col gap-2">
-                <label className="text-xs text-gray-500">Sonraki Bakım Tarihi</label>
-                <input
-                    type="date"
-                    {...register("nextMaintenanceDate")}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm"
-                />
-                {errors?.nextMaintenanceDate && (
-                    <span className="text-xs text-red-500">{errors.nextMaintenanceDate.message}</span>
-                )}
-            </div>
-
-            <div className="flex flex-col gap-2 col-span-2">
-                <label className="text-xs text-gray-500">Detaylar</label>
-                <textarea
-                    {...register("details")}
-                    rows={4}
-                    className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm resize-none"
-                />
-                {errors?.details && (
-                    <span className="text-xs text-red-500">{errors.details.message}</span>
-                )}
-            </div>
-        </div>
-    </div>
-
-    {/* Operasyonlar */}
-    {operations.length > 0 && (
-        <div className="space-y-4">
-            <h2 className="text-sm font-medium text-gray-500">Bakım İşlemleri</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {operations.map((operation) => (
-                    <div key={operation.id} className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id={operation.id}
-                            value={operation.id}
-                            className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
-                            {...register('operations')}
-                        />
-                        <label 
-                            htmlFor={operation.id} 
-                            className="text-sm text-gray-700"
-                        >
-                            {operation.name}
-                        </label>
-                    </div>
-                ))}
-            </div>
-            {errors.operations && (
-                <p className="text-xs text-red-500 mt-1">{errors.operations.message}</p>
-            )}
-        </div>
-    )}
-
-    <button
-        type="submit"
-        disabled={loading || !deviceData}
-        className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors disabled:opacity-50"
-    >
-        {loading ? "İşlem yapılıyor..." : type === "create" ? "Oluştur" : "Güncelle"}
-    </button>
-</form>
+            <button
+                type="submit"
+                disabled={loading || !deviceData}
+                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md transition-colors disabled:opacity-50"
+            >
+                {loading ? "İşlem yapılıyor..." : type === "create" ? "Oluştur" : "Güncelle"}
+            </button>
+        </form>
     );
 };
 

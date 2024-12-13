@@ -29,19 +29,19 @@ const schema = z.object({
   // Oluşturan Kişi Bilgileri
   creatorId: z.string().min(1, { message: "Oluşturan kişi seçimi zorunludur" }),
   creatorInsId: z.string().min(1, { message: "Oluşturan kurum seçimi zorunludur" }),
-  
+
   // Randevu Bilgileri
   title: z.string()
     .min(3, { message: "Başlık en az 3 karakter olmalıdır" })
     .max(100, { message: "Başlık en fazla 100 karakter olabilir" }),
-  
+
   content: z.string()
     .min(10, { message: "İçerik en az 10 karakter olmalıdır" })
     .max(500, { message: "İçerik en fazla 500 karakter olabilir" }),
-  
+
   start: z.string().min(1, { message: "Başlangıç tarihi zorunludur" }),
   end: z.string().min(1, { message: "Bitiş tarihi zorunludur" }),
-  
+
   // Alıcı Bilgileri
   recipientId: z.string().min(1, { message: "Alıcı kullanıcı seçimi zorunludur" }),
   recipientInsId: z.string().min(1, { message: "Alıcı kurum seçimi zorunludur" })
@@ -116,16 +116,37 @@ const EventForm = ({ type, data }: EventFormProps) => {
     const submitPromise = new Promise(async (resolve, reject) => {
       try {
         setLoading(true);
-        
+
+        // Form verilerini konsola yazdıralım (debug için)
+        console.log('Form data being submitted:', formData);
+
         const endpoint = type === "create" ? '/api/appointments' : `/api/appointments/${data?.id}`;
         const method = type === "create" ? 'POST' : 'PUT';
+
+        // Form verilerini API'ye göndermeden önce doğrulayalım
+        const validationResult = schema.safeParse(formData);
+        if (!validationResult.success) {
+          throw new Error('Form validation failed');
+        }
+
+        // Form verilerini API'ye gönderelim
+        const requestData = {
+          title: formData.title,
+          content: formData.content,
+          start: formData.start,
+          end: formData.end,
+          creatorId: formData.creatorId,
+          creatorInsId: formData.creatorInsId,
+          recipientId: formData.recipientId,
+          recipientInsId: formData.recipientInsId,
+        };
 
         const response = await fetch(endpoint, {
           method,
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(requestData),
         });
 
         if (!response.ok) {
@@ -251,6 +272,8 @@ const EventForm = ({ type, data }: EventFormProps) => {
             register={register}
             name="recipientInsId"
             error={errors.recipientInsId}
+            defaultValue={data?.recipientInsId}
+            showInstitutionName={true} // Bunu ekleyin
           />
 
           <UserSelect

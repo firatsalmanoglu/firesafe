@@ -45,24 +45,24 @@ const schema = z.object({
   // Oluşturan Kişi ID'si
   creatorId: z.string().min(1, { message: "Oluşturan kişi ID'si zorunludur" }),
   creatorInsId: z.string().min(1, { message: "Gönderen kurum seçimi zorunludur" }),
-  
+
   // Cihaz Bilgileri
   deviceSerialNumber: z.string().min(1, { message: "Cihaz seri numarası zorunludur" }),
   deviceId: z.string().min(1, { message: "Cihaz ID zorunludur" }),
   deviceTypeId: z.string().min(1, { message: "Cihaz tipi ID zorunludur" }),
-  
+
   // Bildirim İçeriği
   content: z.string()
     .min(10, { message: "Bildirim içeriği en az 10 karakter olmalıdır" })
     .max(500, { message: "Bildirim içeriği en fazla 500 karakter olabilir" }),
-  
+
   // Bildirim Tipi
   typeId: z.string().min(1, { message: "Bildirim tipi seçimi zorunludur" }),
-  
+
   // Alıcı Bilgileri
   recipientId: z.string().min(1, { message: "Alıcı kullanıcı seçimi zorunludur" }),
   recipientInsId: z.string().min(1, { message: "Alıcı kurum seçimi zorunludur" }),
-  
+
   // Bildirim Durumu
   isRead: z.enum(["Okundu", "Okunmadi"]).default("Okunmadi")
 });
@@ -161,11 +161,11 @@ const NotificationForm = ({ type, data }: NotificationFormProps) => {
       }
       const data = await response.json();
       setDeviceInfo(data);
-      
+
       // Form alanlarını otomatik doldur
       setValue("deviceId", data.id);
       setValue("deviceTypeId", data.type.id);
-      
+
       toast.success('Cihaz bilgileri yüklendi');
     } catch (error) {
       console.error("Cihaz bilgisi alınamadı:", error);
@@ -188,7 +188,7 @@ const NotificationForm = ({ type, data }: NotificationFormProps) => {
     const submitPromise = new Promise(async (resolve, reject) => {
       try {
         setLoading(true);
-        
+
         const endpoint = type === "create" ? '/api/notifications' : `/api/notifications/${data?.id}`;
         const method = type === "create" ? 'POST' : 'PUT';
 
@@ -360,6 +360,8 @@ const NotificationForm = ({ type, data }: NotificationFormProps) => {
             register={register}
             name="recipientInsId"
             error={errors.recipientInsId}
+            defaultValue={data?.recipientInsId}
+            showInstitutionName={true}
           />
 
           <UserSelect
@@ -390,7 +392,7 @@ const NotificationForm = ({ type, data }: NotificationFormProps) => {
             )}
           </div>
         </div>
-        </div>  {/* Bu div kapanışı eksikti */}
+      </div>  {/* Bu div kapanışı eksikti */}
 
 
       {/* Submit Button */}

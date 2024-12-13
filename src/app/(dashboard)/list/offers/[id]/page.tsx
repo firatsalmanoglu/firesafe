@@ -21,7 +21,7 @@ import { notFound } from "next/navigation";
 type OfferWithRelations = OfferCards & {
   paymentTerm: PaymentTermTypes;
   OfferSub: (OfferSub & {
-      service: Services;
+    service: Services;
   })[];
   creator: Users;
   creatorIns: Institutions;
@@ -36,21 +36,21 @@ const SingleOfferPage = async ({
   params: { id: string };
 }) => {
   const offerId = id;
-  
+
   // Sorguyu bu şekilde güncelleyin
   const offer: OfferWithRelations | null = await prisma.offerCards.findUnique({
     where: { id: offerId },
     include: {
-        paymentTerm: true,
-        OfferSub: {
-            include: {
-                service: true
-            }
-        },
-        creator: true,
-        creatorIns: true,
-        recipient: true,
-        recipientIns: true,
+      paymentTerm: true,
+      OfferSub: {
+        include: {
+          service: true
+        }
+      },
+      creator: true,
+      creatorIns: true,
+      recipient: true,
+      recipientIns: true,
     },
   });
 
@@ -82,31 +82,22 @@ const SingleOfferPage = async ({
                     table="offer"
                     type="update"
                     data={{
-                      id: "1",
-                      offerId: "101",
-                      providerId: "001",
-                      providerName: "Ahmet Mehmet",
-                      providerOrganization: "XXX Yangın Ltd.",
-                      phone: "+90 232 366 66 66",
-                      email: "xxx@gmail.com",
-                      address: "Çiğli/İzmir",
-                      ownerId: "138",
-                      ownerName: "HAtice Bilmemne",
-                      ownerOrganization: "ZZZ Gıda Tekn. Ltd.",
-                      ownerAddress: "Kemalpaşa/İzmir",
-                      ownerPhone: "+90 532 888 88 88",
-                      ownerEmail: "zzz@gmail.com",
-                      projectLocation: "Kemalpaşa/İzmir",
-                      projectSize: "2",
-                      offerDate: "12/12/2023",
-                      expiryDate: "25/10/2025",
-                      unitPrice: "63.450,00",
-                      amount: "126.900,00",
-                      paymentTerms: ["Teslimatta Peşin", "Vadeli"],
-                      servicesOffered: ["Değişim", "Bakım"],
-                      status: "OK",
-                      offerDetails:
-                        "8 adet kuru kimyevi yangın tüpü değişimi anahtar teslim fiyat teklifidir.",
+                      id: offer.id,
+                      creatorId: offer.creator.id,
+                      creatorInsId: offer.creatorIns.id,
+                      recipientId: offer.recipient.id,
+                      recipientInsId: offer.recipientIns.id,
+                      offerDate: new Date(offer.offerDate).toISOString().slice(0, 16),
+                      validityDate: new Date(offer.validityDate).toISOString().slice(0, 16),
+                      paymentTermId: offer.paymentTerm.id,
+                      details: offer.details,
+                      status: offer.status,
+                      offerSub: offer.OfferSub.map(sub => ({
+                        serviceId: sub.servideId,
+                        unitPrice: sub.unitPrice.toString(),
+                        size: sub.size.toString(),
+                        detail: sub.detail || '',
+                      }))
                     }}
                   />
                 )}
@@ -239,10 +230,10 @@ const SingleOfferPage = async ({
               <div className="">
                 <h1 className="text-md font-semibold">Tutar</h1>
                 <span className="text-sm text-gray-400">
-                  {offer.OfferSub.reduce((total, sub) => 
-                      total + (Number(sub.unitPrice) * Number(sub.size)), 
-                      0
-                    ).toFixed(2)}
+                  {offer.OfferSub.reduce((total, sub) =>
+                    total + (Number(sub.unitPrice) * Number(sub.size)),
+                    0
+                  ).toFixed(2)}
 
                 </span>
               </div>

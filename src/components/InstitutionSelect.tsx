@@ -1,4 +1,3 @@
-// components/InstitutionSelect.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -18,7 +17,9 @@ interface InstitutionSelectProps {
   register: any;
   error?: any;
   isLoading?: boolean;
-  userId?: string; // Yeni prop: seçilen kullanıcının ID'si
+  userId?: string;
+  showInstitutionName?: boolean; // Bunu geri ekleyin
+
 }
 
 const InstitutionSelect = ({
@@ -32,6 +33,7 @@ const InstitutionSelect = ({
 }: InstitutionSelectProps) => {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInstitutionId, setSelectedInstitutionId] = useState<string>(defaultValue || "");
 
   useEffect(() => {
     const fetchInstitutions = async () => {
@@ -53,7 +55,16 @@ const InstitutionSelect = ({
     };
 
     fetchInstitutions();
-  }, [userId]); // userId değiştiğinde useEffect tetiklenecek
+  }, [userId]); 
+
+  const handleInstitutionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    setSelectedInstitutionId(selectedId);
+    register(name).onChange(e);
+  };
+
+  // Seçili kurumun adını bul
+  const selectedInstitution = institutions.find(inst => inst.id === selectedInstitutionId);
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -61,10 +72,8 @@ const InstitutionSelect = ({
       <select
         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
         {...register(name)}
-        value={defaultValue || ""}
-        onChange={(e) => {
-          register(name).onChange(e);
-        }}
+        value={selectedInstitutionId}
+        onChange={handleInstitutionChange}
         disabled={loading || isLoading}
       >
         <option value="">Kurum Seçiniz</option>

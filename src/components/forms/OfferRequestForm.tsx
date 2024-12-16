@@ -311,7 +311,7 @@ const OfferRequestForm = ({ type, data }: OfferRequestFormProps) => {
                 register={register}
                 name={`requestSub.${index}.serviceId`}
                 error={errors.requestSub?.[index]?.serviceId}
-                defaultValue={field.serviceId} // field içindeki serviceId'yi defaultValue olarak gönderiyoruz
+                value={field.serviceId} // defaultValue yerine value kullanıyoruz
               />
 
               <div className="flex flex-col gap-2">

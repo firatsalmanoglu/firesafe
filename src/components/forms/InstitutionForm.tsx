@@ -107,7 +107,7 @@ const InstitutionForm = ({
 
     return (
         <form className="flex flex-col gap-4 max-w-7xl mx-auto w-full" onSubmit={handleSubmit(onSubmit)}>
-   // InstitutionForm içinde
+  
             <h1 className="text-xl font-semibold">
                 {type === "create" ? "Kurum Oluştur" : "Kurumu Düzenle"}
             </h1>

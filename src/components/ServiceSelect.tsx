@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { UseFormRegister, FieldError } from "react-hook-form";
 
@@ -15,7 +13,8 @@ interface ServiceSelectProps {
   error?: FieldError;
   disabled?: boolean;
   required?: boolean;
-  defaultValue?: string;  // value yerine defaultValue kullanıyoruz
+  defaultValue?: string;
+  value?: string; // Yeni eklenen prop
 }
 
 const ServiceSelect = ({ 
@@ -25,11 +24,20 @@ const ServiceSelect = ({
   error, 
   disabled = false,
   required = false,
-  defaultValue
+  defaultValue,
+  value // Yeni eklenen prop
 }: ServiceSelectProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState<string>(value || defaultValue || "");
+
+  useEffect(() => {
+    // value prop'u değiştiğinde selectedValue'yu güncelle
+    if (value) {
+      setSelectedValue(value);
+    }
+  }, [value]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -47,11 +55,6 @@ const ServiceSelect = ({
         
         if (!Array.isArray(data)) {
           throw new Error('Geçersiz veri formatı');
-        }
-
-        if (data.length === 0) {
-          setFetchError('Henüz hiç hizmet tanımlanmamış');
-          return;
         }
 
         setServices(data);
@@ -76,10 +79,8 @@ const ServiceSelect = ({
       <div className="relative">
         <select
           {...register(name)}
-          value={defaultValue || ""}
-          onChange={(e) => {
-            register(name).onChange(e);
-          }}
+          value={selectedValue}
+          onChange={(e) => setSelectedValue(e.target.value)}
           disabled={disabled || loading}
           className={`
             ring-[1.5px] 

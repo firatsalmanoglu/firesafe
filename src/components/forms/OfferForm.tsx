@@ -21,6 +21,8 @@ import toast from 'react-hot-toast';
 import InputField from "../InputField";
 import ServiceSelect from "@/components/ServiceSelect";
 
+
+
 // Tip tanımlamaları
 type OfferSubInput = {
   serviceId: string;
@@ -165,11 +167,28 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
 
   useEffect(() => {
     if (data && type === "update") {
-      reset(data);
-      setValue('paymentTermId', data.paymentTermId);  // Bunu ekleyelim
+      // Tarihleri doğru formata çeviriyoruz
+      const offerDate = data.offerDate ? new Date(data.offerDate).toISOString().slice(0, 16) : '';
+      const validityDate = data.validityDate ? new Date(data.validityDate).toISOString().slice(0, 16) : '';
+      
+      reset({
+        ...data,
+        offerDate,
+        validityDate,
+        paymentTermId: data.paymentTermId,
+        offerSub: data.OfferSub?.map((sub: any) => ({
+          serviceId: sub.servideId, // API'deki field adı 'servideId' olduğu için düzeltiyoruz
+          unitPrice: sub.unitPrice.toString(),
+          size: sub.size.toString(),
+          detail: sub.detail || '',
+          isFromRequest: sub.isFromRequest || false
+        }))
+      });
+  
       if (data.creatorId) fetchCreatorInfo(data.creatorId);
       if (data.recipientId) fetchRecipientInfo(data.recipientId);
     }
+    
     fetchPaymentTerms();
   }, [data, type, reset]);
 
@@ -330,16 +349,15 @@ const OfferForm = ({ type, data }: OfferFormProps) => {
             <label className="text-xs text-gray-500">Ödeme Koşulu</label>
             <select
               {...register("paymentTermId")}
-              value={data?.paymentTermId || ""}
-              onChange={(e) => {
-                register("paymentTermId").onChange(e);
-              }}
               className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full disabled:bg-gray-50"
               disabled={isLoadingPaymentTerms}
             >
               <option value="">Seçiniz</option>
               {paymentTerms.map((term) => (
-                <option key={term.id} value={term.id}>
+                <option
+                  key={term.id}
+                  value={term.id}
+                >
                   {term.name}
                 </option>
               ))}

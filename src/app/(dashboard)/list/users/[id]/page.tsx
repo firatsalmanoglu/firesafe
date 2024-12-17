@@ -162,7 +162,7 @@ const SingleUserPage = async ({
         {/* BOTTOM */}
         <div className="mt-4 bg-white rounded-md p-4 h-[800px]">
           <h1 className="text-xl font-semibold">Kullanıcı Takvimi</h1>
-          <BigCalendar />
+          <BigCalendar userId={user.id} />
         </div>
       </div>
       {/* RIGHT */}

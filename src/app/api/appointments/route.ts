@@ -3,9 +3,36 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 // GET - Tüm randevuları getir
-export async function GET() {
+
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+    const institutionId = searchParams.get("institutionId");
+
+    let whereClause = {};
+    
+    if (userId) {
+      whereClause = {
+        OR: [
+          { creatorId: userId },
+          { recipientId: userId }
+        ]
+      };
+    }
+    
+    if (institutionId) {
+      whereClause = {
+        OR: [
+          { creatorInsId: institutionId },
+          { recipientInsId: institutionId }
+        ]
+      };
+    }
+
     const appointments = await prisma.appointments.findMany({
+      where: whereClause,
       include: {
         creator: {
           select: {
@@ -33,7 +60,7 @@ export async function GET() {
         },
       },
       orderBy: {
-        create: 'desc',
+        start: 'asc', // Randevuları başlangıç tarihine göre sıralıyoruz
       },
     });
 

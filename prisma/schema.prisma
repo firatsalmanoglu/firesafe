@@ -473,7 +473,7 @@ model Appointments {
   recipientIns   Institutions @relation("AppRecipientIns", fields: [recipientInsId], references: [id]) // İlişki Tanımı
 }
 
-
+//şimdi eklendi
 // Loglar
 model Logs {
   id   String   @id @default(cuid())

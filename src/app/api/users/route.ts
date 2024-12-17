@@ -7,9 +7,8 @@ import { UserBloodType, UserSex } from "@prisma/client";
 export async function POST(req: Request) {
     try {
         const formData = await req.formData();
-        console.log("Received Form Data:", Object.fromEntries(formData.entries())); // Gelen verileri kontrol et
+        console.log("Received Form Data:", Object.fromEntries(formData.entries())); 
 
-        
         // Şifreyi hashle
         const password = formData.get('password') as string;
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,12 +59,11 @@ export async function POST(req: Request) {
             },
         });
 
-        console.log("Created user:", user); // Oluşturulan kullanıcıyı kontrol et
-
+        console.log("Created user:", user);
 
         return NextResponse.json(user);
     } catch (error) {
-        console.log("[USERS_POST] Detailed error:", error); // Detaylı hata bilgisi
+        console.log("[USERS_POST] Detailed error:", error);
         return new NextResponse("Internal error", { status: 500 });
     }
 }
@@ -88,18 +86,18 @@ export async function DELETE(request: Request) {
         const user = await prisma.users.findUnique({
             where: { id },
             include: {
-                CreatorNotifications: true,
-                RecipientNotifications: true,
-                CreatorAppointments: true,
-                ProviderAppointments: true,
-                CreatorAnnouncements: true,
-                RecipientAnnouncements: true,
-                ProviderDevices: true,
-                OwnerDevices: true,
                 CreatorOfferCards: true,
                 RecipientOfferCards: true,
                 ProviderMaintenanceCards: true,
                 CustomerMaintenanceCards: true,
+                CreatorAppointments: true,
+                ProviderAppointments: true,
+                CreatorNotifications: true,
+                RecipientNotifications: true,
+                CreatorAnnouncements: true,
+                ProviderDevices: true,
+                OwnerDevices: true,
+                OfferRequests: true,
                 Logs: true
             }
         });
@@ -115,19 +113,19 @@ export async function DELETE(request: Request) {
 
         // İlişkili kayıtları kontrol et
         const relatedRecords = {
-            creatorNotifications: user.CreatorNotifications.length,
-            recipientNotifications: user.RecipientNotifications.length,
-            creatorAppointments: user.CreatorAppointments.length,
-            providerAppointments: user.ProviderAppointments.length,
-            creatorAnnouncements: user.CreatorAnnouncements.length,
-            recipientAnnouncements: user.RecipientAnnouncements.length,
-            providerDevices: user.ProviderDevices.length,
-            ownerDevices: user.OwnerDevices.length,
-            creatorOfferCards: user.CreatorOfferCards.length,
-            recipientOfferCards: user.RecipientOfferCards.length,
-            providerMaintenanceCards: user.ProviderMaintenanceCards.length,
-            customerMaintenanceCards: user.CustomerMaintenanceCards.length,
-            logs: user.Logs.length
+            creatorOfferCards: user.CreatorOfferCards?.length || 0,
+            recipientOfferCards: user.RecipientOfferCards?.length || 0,
+            providerMaintenanceCards: user.ProviderMaintenanceCards?.length || 0,
+            customerMaintenanceCards: user.CustomerMaintenanceCards?.length || 0,
+            creatorAppointments: user.CreatorAppointments?.length || 0,
+            providerAppointments: user.ProviderAppointments?.length || 0,
+            creatorNotifications: user.CreatorNotifications?.length || 0,
+            recipientNotifications: user.RecipientNotifications?.length || 0,
+            creatorAnnouncements: user.CreatorAnnouncements?.length || 0,
+            providerDevices: user.ProviderDevices?.length || 0,
+            ownerDevices: user.OwnerDevices?.length || 0,
+            offerRequests: user.OfferRequests?.length || 0,
+            logs: user.Logs?.length || 0
         };
 
         const hasRelatedRecords = Object.values(relatedRecords).some(count => count > 0);
@@ -166,4 +164,3 @@ export async function DELETE(request: Request) {
         });
     }
 }
-
